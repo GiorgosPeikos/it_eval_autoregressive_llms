@@ -65,6 +65,9 @@ class PerplexityConfig(BaseModel):
     dataset_path: str | None = None
     dataset_repo: str | None = None
     dataset_subset: str | None = None
+    dataset_revision: str | None = None
+    dataset_trust_remote_code: bool = False
+    dataset_streaming: bool = False
     split: str | None = None
     text_field: str = "text"
     sequence_length: int = 1024
@@ -74,6 +77,7 @@ class PerplexityConfig(BaseModel):
     add_eos_token: bool = False
     per_document_stats: bool = True
     max_documents: int | None = None
+    max_tokens_per_document: int | None = None
     contamination_warning: str = (
         "Held-out perplexity is only comparable when the evaluation corpus is document-wise or temporally "
         "separated from training data."
@@ -83,6 +87,8 @@ class PerplexityConfig(BaseModel):
     def require_dataset(self) -> "PerplexityConfig":
         if self.enabled and not (self.dataset_path or self.dataset_repo):
             raise ValueError("Perplexity evaluation requires either dataset_path or dataset_repo.")
+        if self.dataset_path and self.dataset_repo:
+            raise ValueError("Set only one of perplexity.dataset_path or perplexity.dataset_repo.")
         return self
 
 

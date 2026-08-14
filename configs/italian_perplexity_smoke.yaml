@@ -1,4 +1,4 @@
-run_name: italian_base_quick
+run_name: italian_perplexity_smoke
 model:
   source: "sshleifer/tiny-gpt2"
   tokenizer_source: "sshleifer/tiny-gpt2"
@@ -9,35 +9,28 @@ model:
   batch_size: 1
 output:
   root_dir: evaluation_results
-  overwrite: false
-  save_details: true
+  overwrite: true
+  save_details: false
 runtime:
   seed: 13
-  python_executable: "python"
-  lighteval_command: "lighteval"
 lighteval:
   enabled: false
-  suite: quick
-  max_samples: 2
-  dataset_loading_processes: 1
+  suite: null
 blimp_it:
-  enabled: true
-  max_samples: 4
+  enabled: false
 perplexity:
   enabled: true
   dataset_repo: "gsarti/clean_mc4_it"
   dataset_subset: "tiny"
   dataset_revision: "167d5696e91ac89f17936f9d0059031cbc4c9e99"
   dataset_trust_remote_code: true
+  dataset_streaming: true
   split: validation
   text_field: text
-  sequence_length: 128
+  sequence_length: 64
   stride: 64
   preserve_document_boundaries: true
-  max_documents: 3
-  max_tokens_per_document: 256
+  max_documents: 1
+  max_tokens_per_document: 64
 generation:
-  enabled: true
-  prompts_path: configs/generation_prompts.yaml
-  max_prompts: 3
-  seed: 13
+  enabled: false

@@ -27,6 +27,7 @@ The framework supports:
 ```text
 configs/
 constraints/
+docs/
 notebooks/
 src/it_eval_framework/
 tests/
@@ -89,6 +90,20 @@ Or set a token explicitly:
 $env:HF_TOKEN="your_token_here"
 ```
 
+## Start here
+
+If you are new to the repository, use this order:
+
+1. run the quick smoke test
+2. point the config at your model
+3. run the supported evaluation path that matches your goal
+
+The three most useful entry points are:
+
+- quick smoke test in Colab: `notebooks/colab_quickstart.ipynb`
+- local model config template: `configs/local_model_example.yaml`
+- benchmark reference for paper writing: `docs/TASK_REFERENCE.md`
+
 ## Quick start
 
 Run tests first:
@@ -103,7 +118,17 @@ Run the compact evaluation suite:
 python -m it_eval_framework.runners.run_all --config configs/italian_base_quick.yaml
 ```
 
-The default quick config currently skips LightEval. That keeps the smoke path reproducible while the broader LightEval stack remains a separately managed path.
+Run only the fast streaming Italian perplexity check (one document, at most 64 tokens):
+
+```bash
+python -m it_eval_framework.runners.run_perplexity --config configs/italian_perplexity_smoke.yaml
+```
+
+This verifies the model/corpus/perplexity pipeline; its score is not statistically meaningful.
+The smoke config pins both the tiny model and Italian dataset to immutable Hugging Face commit hashes.
+
+The default quick config currently skips LightEval. Its default perplexity example is Italian-only and uses the validation split of `gsarti/clean_mc4_it` rather than an English convenience corpus.
+It limits evaluation to three documents and 256 tokens per document; remove or increase these limits for a real measurement.
 
 Run the full suite:
 
@@ -127,6 +152,55 @@ python -m it_eval_framework.runners.run_blimp_it --config configs/italian_base_f
 python -m it_eval_framework.runners.run_perplexity --config configs/italian_base_full.yaml
 python -m it_eval_framework.runners.run_generation --config configs/italian_base_full.yaml
 ```
+
+## Evaluate your model
+
+The intended user flow is:
+
+1. verify the repository with the quick smoke path
+2. copy `configs/local_model_example.yaml`
+3. replace `model.source` with your checkpoint path or Hugging Face repo id
+4. optionally set `tokenizer_source`, `device`, `dtype`, and `batch_size`
+5. choose the evaluation scope you want
+
+For a local checkpoint on Windows PowerShell:
+
+```powershell
+Copy-Item configs/local_model_example.yaml configs/my_model_eval.yaml
+notepad configs/my_model_eval.yaml
+```
+
+Then run one of these:
+
+Stable smoke path:
+
+```powershell
+python -m it_eval_framework.runners.run_all --config configs/italian_base_quick.yaml
+```
+
+Supported bounded LightEval subset on local Windows:
+
+```powershell
+python -m it_eval_framework.runners.run_lighteval --config configs/lighteval_verified_windows.yaml
+```
+
+Broader all-in-one evaluation path:
+
+```powershell
+python -m it_eval_framework.runners.run_all --config configs/my_model_eval.yaml
+```
+
+When you prepare a model-specific config, the most important fields are:
+
+- `model.source`: local checkpoint path or Hugging Face repo id
+- `model.tokenizer_source`: tokenizer override when needed
+- `model.device`: `cpu`, `cuda:0`, or another explicit device
+- `lighteval.suite`: `quick`, `full`, or `verified_windows`
+- `perplexity.dataset_path` or `perplexity.dataset_repo`: your held-out corpus
+- for this repository's intended use, that held-out corpus should be Italian
+- the repository defaults use `gsarti/clean_mc4_it` as an Italian-only Hugging Face example corpus
+
+If you want a reproducible local Windows LightEval path today, prefer `verified_windows` over `full`.
 
 ## LightEval stabilization workflow
 
@@ -174,6 +248,18 @@ The user-facing model entry is always one of:
 - a Hugging Face repo ID in `model.source`
 
 Optional tokenizer overrides are supported with `model.tokenizer_source`.
+
+## What gets evaluated
+
+The repository evaluates four different kinds of behavior:
+
+- benchmark accuracy through LightEval-backed Italian tasks
+- grammatical acceptability through BLiMP-IT minimal pairs
+- next-token likelihood on held-out text through perplexity
+- held-out perplexity in this repository is intended to be computed on Italian text, not on an English convenience corpus
+- open-ended continuation behavior through controlled generation
+
+For the exact task-by-task reference, task aliases, formulations, and paper-facing notes, see [docs/TASK_REFERENCE.md](docs/TASK_REFERENCE.md).
 
 ## Verified LightEval version and Italian task IDs
 
@@ -227,7 +313,7 @@ evaluation_results/
 | SQuAD-it | LightEval / `crux82/squad_it` | generative QA | task metrics from LightEval | task ID is `squad_ita` |
 | MKQA IT | LightEval / `apple/mkqa` | answer-type specific QA | task metrics from LightEval | split by answer class |
 | TruthfulQA IT | LightEval / `okapi_truthfulqa` | cf, mcf, hybrid | task metrics from LightEval | mc1/mc2 variants kept separate |
-| Held-out perplexity | local file or HF dataset | sliding-window NLL | token perplexity | contamination warning required |
+| Held-out perplexity | Italian local file or Italian HF dataset | sliding-window NLL | token perplexity | contamination warning required |
 | Controlled generation | local prompts | greedy / sampled decoding | diagnostics + human review | not a substitute for human evaluation |
 
 ## ItaCoLA status
@@ -249,6 +335,7 @@ These are operational issues, not framework design constraints.
 
 - LightEval multilingual tasks require the `multilingual` extra
 - some datasets may be gated, rate-limited, or temporarily unavailable
+- the default Italian perplexity example uses `gsarti/clean_mc4_it`; remote loader code is controlled explicitly by `perplexity.dataset_trust_remote_code`, so inspect the dataset repository before enabling it for a new source
 - the current LightEval wrapper preserves raw results and verified task IDs, but does not yet normalize every LightEval metric into a richer per-task schema
 - `global_mmlu` and `mlmm_mmlu` expand to subject-level tasks, so aggregation is still task-level
 - `mkqa.long_answer` is excluded from the supported bounded probe path because the current probe finds no documents to evaluate for `mkqa_ita:long_answer`
@@ -294,9 +381,19 @@ See `SMOKE_TEST_RESULTS.md` for the latest recorded smoke execution notes. That 
 
 ## Recommended next steps
 
-1. run the quick suite in Colab or another Python `3.10` to `3.13` environment
-2. inspect the actual LightEval output structure from a successful run
-3. tighten the LightEval result parser into a normalized per-task schema
-4. add dataset metadata capture: split, revision, license, and auth requirements
-5. add tokenizer and vocabulary compatibility checks before execution
-6. add explicit comparison warnings when task or prompt settings differ across runs
+1. run publication-scale evaluations with a model and Italian corpus appropriate to the research question
+2. pin `model.revision` and `perplexity.dataset_revision` to immutable commit hashes for archival runs
+3. add tokenizer and vocabulary compatibility checks before execution
+4. add explicit comparison warnings when task or prompt settings differ across runs
+
+## Reproducibility outputs
+
+Every run directory contains:
+
+- `run_config.yaml`: the fully resolved configuration
+- `environment.json`: Python, package, platform, Git commit, dirty-worktree status, and a diff hash
+- `reproducibility.json`: result-schema version, configuration hash, and random seed
+- component metadata with UTC start and completion times
+- raw component outputs, plus normalized LightEval metric rows in `benchmark_results.json`
+
+For an archival run, use Python 3.10–3.13, install the pinned LightEval constraints, set immutable model and dataset revisions, start from a clean Git worktree, and retain the entire run directory. A dirty worktree is recorded, but cannot be reconstructed from the hash alone unless its patch is also preserved.

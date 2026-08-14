@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import argparse
+from itertools import islice
 from pathlib import Path
+from typing import Iterable
 
-from datasets import Dataset, load_dataset
+from datasets import load_dataset
 
 from it_eval_framework.config import load_config
 from it_eval_framework.metrics.perplexity import compute_window_nll, finalize_perplexity, sliding_windows
@@ -12,14 +14,21 @@ from it_eval_framework.utils.io import write_json
 from it_eval_framework.utils.modeling import load_model, load_tokenizer
 
 
-def load_text_dataset(config) -> Dataset:
+def load_text_dataset(config) -> Iterable[dict]:
     ppl = config.perplexity
     if ppl.dataset_path:
         suffix = Path(ppl.dataset_path).suffix.lower()
         if suffix == ".jsonl":
             return load_dataset("json", data_files=ppl.dataset_path, split="train")
         return load_dataset("text", data_files=ppl.dataset_path, split="train")
-    return load_dataset(ppl.dataset_repo, ppl.dataset_subset, split=ppl.split or "train")
+    return load_dataset(
+        ppl.dataset_repo,
+        ppl.dataset_subset,
+        split=ppl.split or "train",
+        revision=ppl.dataset_revision,
+        trust_remote_code=ppl.dataset_trust_remote_code,
+        streaming=ppl.dataset_streaming,
+    )
 
 
 def run(config_path: str):
@@ -36,8 +45,22 @@ def run(config_path: str):
     model = load_model(config.model)
     tokenizer = load_tokenizer(config.model)
     dataset = load_text_dataset(config)
+    try:
+        num_rows_before_limit = len(dataset)
+    except TypeError:
+        num_rows_before_limit = None
+    dataset_metadata = {
+        "fingerprint": getattr(dataset, "_fingerprint", None),
+        "num_rows_before_limit": num_rows_before_limit,
+        "dataset_name": getattr(dataset.info, "dataset_name", None),
+        "config_name": getattr(dataset.info, "config_name", None),
+        "version": str(dataset.info.version) if getattr(dataset.info, "version", None) else None,
+    }
     if config.perplexity.max_documents:
-        dataset = dataset.select(range(min(len(dataset), config.perplexity.max_documents)))
+        if hasattr(dataset, "select"):
+            dataset = dataset.select(range(min(len(dataset), config.perplexity.max_documents)))
+        else:
+            dataset = islice(dataset, config.perplexity.max_documents)
 
     per_document = []
     total_nll = 0.0
@@ -52,6 +75,8 @@ def run(config_path: str):
         if config.perplexity.add_eos_token and tokenizer.eos_token:
             text = text + tokenizer.eos_token
         input_ids = tokenizer(text, return_tensors="pt")["input_ids"]
+        if config.perplexity.max_tokens_per_document:
+            input_ids = input_ids[:, : config.perplexity.max_tokens_per_document]
 
         doc_nll = 0.0
         doc_tokens = 0
@@ -76,11 +101,18 @@ def run(config_path: str):
     results = finalize_perplexity(total_nll, total_tokens)
     results.update(
         {
+            "schema_version": "1.0",
             "dataset_path": config.perplexity.dataset_path,
             "dataset_repo": config.perplexity.dataset_repo,
             "dataset_subset": config.perplexity.dataset_subset,
+            "dataset_revision": config.perplexity.dataset_revision,
+            "dataset_trust_remote_code": config.perplexity.dataset_trust_remote_code,
+            "dataset_streaming": config.perplexity.dataset_streaming,
             "split": config.perplexity.split,
             "text_field": config.perplexity.text_field,
+            "dataset_metadata": dataset_metadata,
+            "max_documents": config.perplexity.max_documents,
+            "max_tokens_per_document": config.perplexity.max_tokens_per_document,
             "sequence_length": config.perplexity.sequence_length,
             "stride": config.perplexity.stride,
             "preserve_document_boundaries": config.perplexity.preserve_document_boundaries,

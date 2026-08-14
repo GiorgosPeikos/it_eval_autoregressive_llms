@@ -2,6 +2,8 @@
 
 Date: 2026-08-14
 
+> Historical log: earlier steps intentionally preserve failures seen during stabilization. For current status, use the final step in this file, `LIGHTEVAL_TASK_ISSUES.md`, and the README. Earlier blocker lists are not the current repository state.
+
 Purpose: concise working-state summary for future agents. This file is a local handoff note and does not need to be committed.
 
 ## Step 1. Repository inspection and packaging cleanup
@@ -424,9 +426,10 @@ Stable now:
 - cache bypass for the patched loglikelihood path to avoid broken conditioned/unconditioned cache interactions
 - stop-sequence normalization for generative LightEval tasks in the patched wrapper
 
-Unstable now:
-- LightEval as a default reproducible path
-- many LightEval aliases still blocked by upstream dataset failures or LightEval runtime bugs
+Bounded support now:
+- LightEval remains disabled in the fast default smoke configuration
+- the promoted `verified_windows` suite is the supported bounded local Windows path
+- all aliases in that suite passed bounded probes; `mkqa.long_answer` is intentionally excluded because it has no probe documents
 
 Current recommended local commands:
 

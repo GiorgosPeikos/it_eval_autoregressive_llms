@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import platform
 import subprocess
+import hashlib
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -33,8 +34,25 @@ def git_commit(workdir: str | Path) -> str | None:
         return None
 
 
+def git_worktree_state(workdir: str | Path) -> dict:
+    try:
+        status = subprocess.run(
+            ["git", "status", "--porcelain"], cwd=workdir, capture_output=True, text=True, check=True
+        ).stdout
+        diff = subprocess.run(
+            ["git", "diff", "--binary", "HEAD"], cwd=workdir, capture_output=True, check=True
+        ).stdout
+        return {
+            "git_dirty": bool(status.strip()),
+            "git_status": status.splitlines(),
+            "git_diff_sha256": hashlib.sha256(diff).hexdigest() if diff else None,
+        }
+    except Exception:
+        return {"git_dirty": None, "git_status": [], "git_diff_sha256": None}
+
+
 def environment_snapshot(workdir: str | Path) -> dict:
-    return {
+    snapshot = {
         "timestamp_utc": utc_now(),
         "platform": platform.platform(),
         "python": platform.python_version(),
@@ -44,3 +62,5 @@ def environment_snapshot(workdir: str | Path) -> dict:
         "torch_version": torch.__version__,
         "datasets_version": datasets.__version__,
     }
+    snapshot.update(git_worktree_state(workdir))
+    return snapshot

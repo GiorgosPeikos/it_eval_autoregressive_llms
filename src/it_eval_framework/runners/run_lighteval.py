@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 from it_eval_framework.config import load_config
+from it_eval_framework.reporting.normalize_results import RESULT_SCHEMA_VERSION, normalize_lighteval_results
 from it_eval_framework.runners.common import mark_finished, mark_started, prepare_run
 from it_eval_framework.task_registry import LIGHTEVAL_VERSION, resolve_task_aliases
 from it_eval_framework.utils.io import read_json, write_json
@@ -133,10 +134,12 @@ def run(config_path: str) -> Path:
 
     raw_results = read_json(raw_results_path)
     benchmark_payload = {
+        "schema_version": RESULT_SCHEMA_VERSION,
         "backend": "lighteval",
         "lighteval_version": LIGHTEVAL_VERSION,
         "resolved_tasks": task_names,
         "results_file": str(raw_results_path),
+        "normalized_metrics": normalize_lighteval_results(raw_results),
         "raw_results": raw_results,
     }
     write_json(run_dir / "benchmark_results.json", benchmark_payload)

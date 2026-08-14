@@ -13,7 +13,11 @@ def aggregate(run_dir: Path) -> pd.DataFrame:
     benchmark_path = run_dir / "benchmark_results.json"
     if benchmark_path.exists():
         payload = read_json(benchmark_path)
-        rows.append({"component": "lighteval", "metric": "task_count", "value": len(payload["resolved_tasks"])})
+        normalized = payload.get("normalized_metrics", [])
+        if normalized:
+            rows.extend(normalized)
+        else:
+            rows.append({"component": "lighteval", "metric": "task_count", "value": len(payload["resolved_tasks"])})
     blimp_path = run_dir / "blimp_it_results.json"
     if blimp_path.exists():
         payload = read_json(blimp_path)

@@ -20,7 +20,11 @@ blimp_it:
   enabled: true
 perplexity:
   enabled: true
-  dataset_path: "/path/to/heldout_corpus.jsonl"
+  dataset_repo: "gsarti/clean_mc4_it"
+  dataset_subset: "tiny"
+  dataset_revision: "167d5696e91ac89f17936f9d0059031cbc4c9e99"
+  dataset_trust_remote_code: true
+  split: validation
   text_field: text
   sequence_length: 1024
   stride: 512
