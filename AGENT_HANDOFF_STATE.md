@@ -642,3 +642,11 @@ State after step 35:
 
 State after step 36:
 - the Colab, installed CLI/API, packaged-resource, and repository test paths are all verified.
+
+## Step 37. Adopt Apache-2.0 for the first release
+
+- Added the canonical Apache License 2.0 text and PEP 639 package metadata.
+- Added the user-facing license link; modern package metadata uses the license expression instead of the superseded classifier.
+
+State after step 37:
+- the repository and distribution have an explicit release-compatible license.

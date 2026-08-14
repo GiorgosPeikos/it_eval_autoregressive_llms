@@ -41,11 +41,10 @@ After a PyPI release, the equivalent command will be `python -m pip install it-e
 
 The repository builds as the `it-eval-framework` distribution. Before creating the first `v0.1.0` tag:
 
-1. choose and add a repository license
-2. create or reserve the `it-eval-framework` project on PyPI
-3. configure a PyPI trusted publisher for `.github/workflows/release.yml` with environment `pypi`
-4. confirm the version in `pyproject.toml`
-5. push the version tag; the workflow builds, validates, and publishes the distributions
+1. create or reserve the `it-eval-framework` project on PyPI
+2. configure a PyPI trusted publisher for `.github/workflows/release.yml` with environment `pypi`
+3. confirm the version in `pyproject.toml`
+4. push the version tag; the workflow builds, validates, and publishes the distributions
 
 Package-name availability was checked during preparation, but must be checked again immediately before the first release.
 

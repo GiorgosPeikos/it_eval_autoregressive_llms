@@ -11,6 +11,8 @@
 
 This repository provides a reproducible evaluation framework for Italian decoder-only Hugging Face language models. It is designed for base models, not instruction-tuned or chat models, so it prioritizes continuation likelihood, conditional log-likelihood, perplexity, and controlled generation.
 
+Licensed under the [Apache License 2.0](LICENSE).
+
 ## Choose how to start
 
 ### 1. Evaluate a model in Colab
