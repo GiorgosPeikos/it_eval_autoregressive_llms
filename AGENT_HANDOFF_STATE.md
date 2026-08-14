@@ -521,3 +521,11 @@ State after step 20:
 
 State after step 21:
 - the normalized schema and its backward-compatible aggregation fallback have explicit regression tests.
+
+## Step 22. Distinguish evaluation configs from support YAML
+
+- Added evaluation-config discovery based on the required top-level model section.
+- Added a test that loads every discovered evaluation config without misclassifying generation prompts.
+
+State after step 22:
+- automated config audits no longer report `generation_prompts.yaml` as an invalid evaluation config.

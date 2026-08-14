@@ -147,3 +147,13 @@ def load_yaml(path: str | Path) -> dict:
 
 def load_config(path: str | Path) -> EvaluationConfig:
     return EvaluationConfig.model_validate(load_yaml(path))
+
+
+def discover_evaluation_configs(directory: str | Path) -> list[Path]:
+    """Return evaluation YAML files while excluding support YAML such as prompt lists."""
+    paths = []
+    for path in sorted(Path(directory).glob("*.yaml")):
+        payload = load_yaml(path)
+        if isinstance(payload, dict) and "model" in payload:
+            paths.append(path)
+    return paths

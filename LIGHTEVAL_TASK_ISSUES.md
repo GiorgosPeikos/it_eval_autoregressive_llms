@@ -173,3 +173,4 @@ Interpretation:
 - 2026-08-14: empty perplexity runs now fail explicitly instead of returning `1.0`; LightEval task classifications are unchanged.
 - 2026-08-14: reconciled README documentation with the normalized LightEval output schema; task classifications are unchanged.
 - 2026-08-14: added normalization coverage for expanded tasks, aggregates, few-shot settings, and legacy results; task classifications are unchanged.
+- 2026-08-14: added evaluation-config discovery so support YAML is excluded from config audits; task classifications are unchanged.

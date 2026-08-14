@@ -36,6 +36,7 @@ SMOKE_TEST_RESULTS.md
 ```
 
 Core logic lives in `src/it_eval_framework`. The notebooks are intentionally thin launchers, not a second implementation.
+The `configs/` directory also contains support YAML such as `generation_prompts.yaml`; programmatic audits should use `discover_evaluation_configs()` instead of treating every YAML file as a full evaluation config.
 
 ## Supported runtime target
 

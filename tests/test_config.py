@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from it_eval_framework.config import load_config
+from it_eval_framework.config import discover_evaluation_configs, load_config
 
 
 def test_quick_config_loads():
@@ -33,3 +33,12 @@ perplexity:
         assert "Set only one" in str(error)
     else:
         raise AssertionError("Expected ambiguous perplexity dataset source to fail")
+
+
+def test_all_discovered_evaluation_configs_load():
+    paths = discover_evaluation_configs("configs")
+
+    assert Path("configs/generation_prompts.yaml") not in paths
+    assert Path("configs/italian_base_quick.yaml") in paths
+    for path in paths:
+        load_config(path)
