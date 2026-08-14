@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from it_eval_framework.reporting.compare_checkpoints import compare_summaries
+from it_eval_framework.reporting.compare_checkpoints import compare_summaries, comparison_warnings
 
 
 def _summary(values):
@@ -25,3 +25,13 @@ def test_comparison_rejects_duplicate_result_identities():
 
     with pytest.raises(ValueError, match="duplicate result identities"):
         compare_summaries(duplicated, _summary([("a", 0.3)]))
+
+
+def test_comparison_warns_when_evaluation_settings_differ():
+    left = {"model": {"source": "model/a", "tokenizer_source": "tokenizer/a"}, "perplexity": {"enabled": True, "split": "validation"}}
+    right = {"model": {"source": "model/b", "tokenizer_source": "tokenizer/b"}, "perplexity": {"enabled": True, "split": "test"}}
+
+    messages = comparison_warnings(left, right)
+
+    assert "Evaluation setting differs: perplexity.split" in messages
+    assert "Evaluation setting differs: effective tokenizer" in messages

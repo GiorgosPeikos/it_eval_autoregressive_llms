@@ -175,3 +175,4 @@ Interpretation:
 - 2026-08-14: added normalization coverage for expanded tasks, aggregates, few-shot settings, and legacy results; task classifications are unchanged.
 - 2026-08-14: added evaluation-config discovery so support YAML is excluded from config audits; task classifications are unchanged.
 - 2026-08-14: extended the normalized metric-row schema to every evaluation component; LightEval task classifications are unchanged.
+- 2026-08-14: added non-blocking compatibility warnings for result comparisons; task classifications are unchanged.

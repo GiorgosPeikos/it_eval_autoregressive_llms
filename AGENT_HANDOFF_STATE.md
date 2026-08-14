@@ -537,3 +537,11 @@ State after step 22:
 
 State after step 23:
 - all four evaluation families emit compatible normalized metric rows.
+
+## Step 24. Warn on incompatible run comparisons
+
+- Added warnings for task, dataset, split, sample-limit, prompt, tokenizer, and key environment differences.
+- Intentional comparisons remain possible; warnings are non-blocking.
+
+State after step 24:
+- checkpoint comparisons surface configuration mismatches before results are interpreted.
