@@ -617,3 +617,11 @@ State after step 32:
 
 State after step 33:
 - installed users can run `it-eval evaluate --model ... --preset quick`; `full` remains explicitly unbounded.
+
+## Step 34. Rewrite onboarding around user entry points
+
+- Added `docs/USER_GUIDE.md` covering Colab, GitHub installation, CLI, Python API, local checkpoints, presets, LightEval, and output retention.
+- Put the three supported entry routes at the top of the README.
+
+State after step 34:
+- a new user can identify the correct path and execute a bounded first evaluation without reading internal architecture documentation.

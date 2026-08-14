@@ -11,6 +11,33 @@
 
 This repository provides a reproducible evaluation framework for Italian decoder-only Hugging Face language models. It is designed for base models, not instruction-tuned or chat models, so it prioritizes continuation likelihood, conditional log-likelihood, perplexity, and controlled generation.
 
+## Choose how to start
+
+### 1. Evaluate a model in Colab
+
+Use the **Model Eval** badge above. Select a GPU, enter a Hugging Face model id or Google Drive checkpoint path, run the bounded evaluation, and download the complete result ZIP.
+
+### 2. Use it from another Python project
+
+```bash
+python -m pip install "it-eval-framework @ git+https://github.com/GiorgosPeikos/it_eval_autoregressive_llms.git"
+it-eval evaluate --model my-org/my-italian-model --preset quick --device auto
+```
+
+Or call it from Python:
+
+```python
+from it_eval_framework import evaluate
+
+run_dir = evaluate(model="my-org/my-italian-model", preset="quick", device="auto")
+```
+
+### 3. Develop the framework
+
+Clone the repository and use the pinned development installation described below.
+
+For model revisions, local checkpoints, preset selection, LightEval installation, result interpretation, and archival guidance, see [Evaluate your Italian language model](docs/USER_GUIDE.md).
+
 ## Scope
 
 The framework supports:

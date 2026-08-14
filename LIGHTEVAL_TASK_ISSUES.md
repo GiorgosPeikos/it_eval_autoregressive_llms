@@ -185,3 +185,4 @@ Interpretation:
 - 2026-08-14: added the supported public Python evaluation entry point; task classifications are unchanged.
 - 2026-08-14: added the unified `it-eval evaluate` command; task classifications are unchanged.
 - 2026-08-14: added package-owned presets, including the bounded supported `verified_windows` LightEval suite; task classifications are unchanged.
+- 2026-08-14: documented the separate pinned LightEval installation required by external-project users; task classifications are unchanged.
