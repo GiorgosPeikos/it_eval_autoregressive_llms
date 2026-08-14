@@ -190,4 +190,4 @@ Interpretation:
 - 2026-08-14: validated the external wheel and public quick-preset API end to end; LightEval task classifications are unchanged.
 - 2026-08-14: adopted Apache-2.0 package licensing for the release; LightEval task classifications are unchanged.
 - 2026-08-14: published `it-eval-framework==0.1.0` through PyPI trusted publishing; LightEval remains separately installed for the pinned task path and classifications are unchanged.
-- 2026-08-14: prepared `0.1.1` as a documentation-only PyPI description correction; LightEval task classifications are unchanged.
+- 2026-08-14: published `0.1.1` as a documentation-only PyPI description correction; LightEval task classifications are unchanged.
