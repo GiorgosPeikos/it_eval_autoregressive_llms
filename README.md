@@ -40,6 +40,13 @@ The intended runtime target for the full framework is:
 
 The dependency pins used for that path are listed in `constraints/lighteval-python310-313.txt`.
 
+One upstream packaging caveat currently matters:
+
+- `lighteval 0.13.0` declares `datasets>=4.0.0`
+- several Italian tasks still rely on dataset-script behavior that works with `datasets 3.6.0`
+
+Because of that, the working bootstrap sequence installs `lighteval` first and then pins the shared runtime stack to the known-good versions used by this repository.
+
 ## Installation
 
 Create a fresh virtual environment and install the pinned stack:
@@ -47,9 +54,10 @@ Create a fresh virtual environment and install the pinned stack:
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install --upgrade pip setuptools wheel
+python -m pip install --upgrade "pip<27" "setuptools<82" wheel
+python -m pip install "lighteval[multilingual]==0.13.0" --no-deps
 python -m pip install -r constraints/lighteval-python310-313.txt
-python -m pip install -e .[dev]
+python -m pip install -e .[dev] --no-deps
 ```
 
 On Windows PowerShell:
@@ -57,9 +65,10 @@ On Windows PowerShell:
 ```powershell
 py -3.12 -m venv .venv
 .venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip setuptools wheel
+python -m pip install --upgrade "pip<27" "setuptools<82" wheel
+python -m pip install "lighteval[multilingual]==0.13.0" --no-deps
 python -m pip install -r constraints/lighteval-python310-313.txt
-python -m pip install -e .[dev]
+python -m pip install -e .[dev] --no-deps
 ```
 
 ## Quick start
@@ -185,6 +194,7 @@ Windows is supported, but a few practical issues should be expected:
 - long path handling can affect large dependency trees such as `torch`
 - Hugging Face caching may fall back from symlinks to regular copies
 - PowerShell and Windows path separators need slightly different command examples
+- some local Windows Python distributions may make the legacy `datasets 3.6.0` path harder to reproduce than in Linux or Colab
 
 These are operational issues, not framework design constraints.
 
