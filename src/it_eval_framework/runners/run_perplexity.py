@@ -9,6 +9,7 @@ from datasets import load_dataset
 
 from it_eval_framework.config import load_config
 from it_eval_framework.metrics.perplexity import compute_window_nll, finalize_perplexity, sliding_windows
+from it_eval_framework.reporting.normalize_results import RESULT_SCHEMA_VERSION, metric_row
 from it_eval_framework.runners.common import mark_finished, mark_started, prepare_run
 from it_eval_framework.utils.io import write_json
 from it_eval_framework.utils.modeling import load_model, load_tokenizer
@@ -110,7 +111,7 @@ def run(config_path: str):
     results = finalize_perplexity(total_nll, total_tokens)
     results.update(
         {
-            "schema_version": "1.0",
+            "schema_version": RESULT_SCHEMA_VERSION,
             "dataset_path": config.perplexity.dataset_path,
             "dataset_repo": config.perplexity.dataset_repo,
             "dataset_subset": config.perplexity.dataset_subset,
@@ -131,6 +132,11 @@ def run(config_path: str):
             "per_document": per_document if config.perplexity.per_document_stats else None,
         }
     )
+    dataset_id = config.perplexity.dataset_repo or config.perplexity.dataset_path or "unknown"
+    results["normalized_metrics"] = [
+        metric_row("perplexity", dataset_id, "token_perplexity", results["token_perplexity"], sample_count=total_tokens),
+        metric_row("perplexity", dataset_id, "mean_loss", results["mean_loss"], sample_count=total_tokens),
+    ]
     write_json(run_dir / "perplexity_results.json", results)
     state.mark("perplexity", "completed", total_token_count=total_tokens)
     mark_finished(run_dir, "perplexity", {"total_token_count": total_tokens})

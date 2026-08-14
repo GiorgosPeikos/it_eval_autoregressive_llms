@@ -529,3 +529,11 @@ State after step 21:
 
 State after step 22:
 - automated config audits no longer report `generation_prompts.yaml` as an invalid evaluation config.
+
+## Step 23. Normalize every evaluation component
+
+- Added the shared metric-row schema to BLiMP-IT, perplexity, and generation outputs.
+- Aggregation consumes normalized rows while retaining legacy fallbacks.
+
+State after step 23:
+- all four evaluation families emit compatible normalized metric rows.

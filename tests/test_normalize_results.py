@@ -22,6 +22,7 @@ def test_normalize_lighteval_results_pairs_values_and_stderr():
             "metric": "acc_norm",
             "value": 0.5,
             "stderr": 0.1,
+            "sample_count": None,
         }
     ]
 
@@ -44,6 +45,7 @@ def test_normalize_preserves_subject_aggregate_and_nonzero_fewshot():
             "metric": "acc",
             "value": 0.5,
             "stderr": 0.05,
+            "sample_count": None,
         },
         {
             "component": "lighteval",
@@ -52,6 +54,7 @@ def test_normalize_preserves_subject_aggregate_and_nonzero_fewshot():
             "metric": "acc",
             "value": 0.25,
             "stderr": None,
+            "sample_count": None,
         },
     ]
 

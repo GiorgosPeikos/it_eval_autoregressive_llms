@@ -7,6 +7,7 @@ from datasets import get_dataset_config_names, load_dataset
 
 from it_eval_framework.config import load_config
 from it_eval_framework.metrics.minimal_pairs import choose_preferred, score_full_sequence
+from it_eval_framework.reporting.normalize_results import RESULT_SCHEMA_VERSION, metric_row
 from it_eval_framework.runners.common import mark_finished, mark_started, prepare_run
 from it_eval_framework.utils.io import write_json, write_jsonl
 from it_eval_framework.utils.modeling import load_model, load_tokenizer
@@ -103,6 +104,7 @@ def run(config_path: str):
                     break
 
     results = {
+        "schema_version": RESULT_SCHEMA_VERSION,
         "dataset_repo": config.blimp_it.dataset_repo,
         "dataset_revision": config.blimp_it.dataset_revision,
         "dataset_metadata": dataset_metadata,
@@ -117,6 +119,13 @@ def run(config_path: str):
             for name, values in sorted(grouped.items())
         },
     }
+    results["normalized_metrics"] = [
+        metric_row("blimp_it", "all", "accuracy", results["overall_accuracy"], sample_count=total),
+        *[
+            metric_row("blimp_it", name, "accuracy", values["accuracy"], sample_count=values["num_examples"])
+            for name, values in results["by_phenomenon"].items()
+        ],
+    ]
     write_json(run_dir / "blimp_it_results.json", results)
     write_jsonl(run_dir / "blimp_it_samples.jsonl", rows)
     state.mark("blimp_it", "completed", num_examples=total)

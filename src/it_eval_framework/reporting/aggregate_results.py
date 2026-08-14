@@ -21,13 +21,17 @@ def aggregate(run_dir: Path) -> pd.DataFrame:
     blimp_path = run_dir / "blimp_it_results.json"
     if blimp_path.exists():
         payload = read_json(blimp_path)
-        rows.append({"component": "blimp_it", "metric": "overall_accuracy", "value": payload["overall_accuracy"]})
+        rows.extend(payload.get("normalized_metrics") or [{"component": "blimp_it", "metric": "overall_accuracy", "value": payload["overall_accuracy"]}])
     perplexity_path = run_dir / "perplexity_results.json"
     if perplexity_path.exists():
         payload = read_json(perplexity_path)
-        rows.append({"component": "perplexity", "metric": "token_perplexity", "value": payload["token_perplexity"]})
+        rows.extend(payload.get("normalized_metrics") or [{"component": "perplexity", "metric": "token_perplexity", "value": payload["token_perplexity"]}])
+    generation_results_path = run_dir / "generation_results.json"
     generations_path = run_dir / "generations.jsonl"
-    if generations_path.exists():
+    if generation_results_path.exists():
+        payload = read_json(generation_results_path)
+        rows.extend(payload["normalized_metrics"])
+    elif generations_path.exists():
         count = sum(1 for _ in generations_path.open("r", encoding="utf-8"))
         rows.append({"component": "generation", "metric": "num_generations", "value": count})
     return pd.DataFrame(rows)

@@ -7,8 +7,9 @@ import torch
 
 from it_eval_framework.config import GenerationPrompt, load_config, load_yaml
 from it_eval_framework.metrics.generation_diagnostics import summarize_generation
+from it_eval_framework.reporting.normalize_results import RESULT_SCHEMA_VERSION, metric_row
 from it_eval_framework.runners.common import mark_finished, mark_started, prepare_run
-from it_eval_framework.utils.io import write_jsonl
+from it_eval_framework.utils.io import write_json, write_jsonl
 from it_eval_framework.utils.modeling import load_model, load_tokenizer
 
 
@@ -75,6 +76,16 @@ def run(config_path: str):
             )
 
     write_jsonl(run_dir / "generations.jsonl", rows)
+    write_json(
+        run_dir / "generation_results.json",
+        {
+            "schema_version": RESULT_SCHEMA_VERSION,
+            "num_generations": len(rows),
+            "normalized_metrics": [
+                metric_row("generation", "all", "num_generations", len(rows), sample_count=len(rows))
+            ],
+        },
+    )
     state.mark("generation", "completed", num_generations=len(rows))
     mark_finished(run_dir, "generation", {"num_generations": len(rows)})
     return run_dir
