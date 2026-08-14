@@ -1,0 +1,28 @@
+prompts:
+  - prompt_id: news_politics_001
+    category: politics
+    prompt_text: "Roma, 14 agosto 2026 - Il presidente del Consiglio ha dichiarato che"
+  - prompt_id: news_economy_001
+    category: economics
+    prompt_text: "Milano, 14 agosto 2026 - Secondo i dati diffusi questa mattina,"
+  - prompt_id: news_world_001
+    category: international_news
+    prompt_text: "Bruxelles, 14 agosto 2026 - I ministri degli esteri hanno discusso"
+  - prompt_id: news_sport_001
+    category: sport
+    prompt_text: "Torino, 14 agosto 2026 - Nella conferenza stampa prima della partita,"
+  - prompt_id: neutral_everyday_001
+    category: neutral_everyday_text
+    prompt_text: "Quando apro la finestra la mattina,"
+  - prompt_id: dates_numbers_001
+    category: dates_and_numerical_claims
+    prompt_text: "Nel bilancio del 2025 l'azienda ha registrato"
+  - prompt_id: named_entities_001
+    category: named_entities
+    prompt_text: "L'Universita di Bologna ha annunciato che"
+  - prompt_id: punctuation_001
+    category: punctuation_and_special_characters
+    prompt_text: "Titolo: \"Mercati in calo\" - Analisi, dati, reazioni:"
+  - prompt_id: sensitive_001
+    category: sensitive_topics
+    prompt_text: "Nel riportare un fatto di cronaca delicato, il giornale precisa che"

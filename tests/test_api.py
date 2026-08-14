@@ -22,3 +22,18 @@ def test_evaluate_accepts_config_object(monkeypatch):
 
     assert result == Path("results")
     assert "italian_base_quick" in observed["payload"]
+
+
+def test_evaluate_builds_bounded_quick_preset(monkeypatch):
+    observed = {}
+
+    def fake_run(path):
+        observed["config"] = load_config(path)
+        return Path("results")
+
+    monkeypatch.setattr(api, "run_all", fake_run)
+    api.evaluate(model="owner/model", preset="quick", device="cpu")
+
+    assert observed["config"].model.source == "owner/model"
+    assert observed["config"].lighteval.enabled is False
+    assert observed["config"].perplexity.max_documents == 3

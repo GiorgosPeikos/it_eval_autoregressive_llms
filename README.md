@@ -23,6 +23,7 @@ The framework supports:
 - Aggregation and checkpoint comparison utilities
 - A supported Python entry point: `from it_eval_framework import evaluate`
 - A single user-facing command: `it-eval evaluate --config model.yaml`
+- Package-owned presets: `quick`, `perplexity`, `verified_windows`, and explicitly unbounded `full`
 - A shared normalized metric-row schema across LightEval, BLiMP-IT, perplexity, and generation summaries
 
 ## Repository structure

@@ -609,3 +609,11 @@ State after step 31:
 
 State after step 32:
 - installed users have one discoverable top-level command for normal evaluation.
+
+## Step 33. Add package-owned evaluation presets
+
+- Added `quick`, `perplexity`, `verified_windows`, and `full` presets that work without repository YAML files.
+- Extended both the Python API and CLI to accept a model id/path directly.
+
+State after step 33:
+- installed users can run `it-eval evaluate --model ... --preset quick`; `full` remains explicitly unbounded.
