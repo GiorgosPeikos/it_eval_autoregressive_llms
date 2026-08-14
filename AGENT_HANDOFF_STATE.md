@@ -659,3 +659,11 @@ State after step 37:
 
 State after step 38:
 - `python -m pip install it-eval-framework` installs the public `0.1.0` release.
+
+## Step 39. Prepare the v0.1.1 project-description patch
+
+- Bumped the package to `0.1.1` after confirming the immutable `0.1.0` PyPI description retained prerelease wording.
+- Updated public installation documentation for the patch release.
+
+State after step 39:
+- the patch tag will make the corrected PyPI description the default project page.

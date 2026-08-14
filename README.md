@@ -40,7 +40,7 @@ Clone the repository and use the pinned development installation described below
 
 For model revisions, local checkpoints, preset selection, LightEval installation, result interpretation, and archival guidance, see [Evaluate your Italian language model](docs/USER_GUIDE.md).
 
-Version `0.1.0` is published on [PyPI](https://pypi.org/project/it-eval-framework/). GitHub installation remains available when testing unreleased commits.
+Version `0.1.1` is published on [PyPI](https://pypi.org/project/it-eval-framework/). GitHub installation remains available when testing unreleased commits.
 
 ## Scope
 
