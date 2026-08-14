@@ -18,7 +18,7 @@ blimp_it:
   enabled: true
 perplexity:
   enabled: true
-  dataset_path: "C:/data/heldout_ansa.jsonl"
+  dataset_path: "C:/data/heldout_corpus.jsonl"
   text_field: text
   sequence_length: 1024
   stride: 512
