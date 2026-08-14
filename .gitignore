@@ -11,3 +11,7 @@ evaluation_results/
 data/
 
 *.log
+
+# Local maintainer state (not part of the public package/repository surface)
+AGENT_HANDOFF_STATE.md
+LIGHTEVAL_TASK_ISSUES.md

@@ -67,7 +67,6 @@ notebooks/
 src/it_eval_framework/
 tests/
 README.md
-SMOKE_TEST_RESULTS.md
 ```
 
 Core logic lives in `src/it_eval_framework`. The notebooks are intentionally thin launchers, not a second implementation.
@@ -413,10 +412,6 @@ Excluded from that supported bounded path:
 3. Add the alias to the desired suite in `DEFAULT_LIGHTEVAL_SUITES`
 4. Update the benchmark table in this README
 5. Add a smoke config entry with `max_samples` before enabling it broadly
-
-## Smoke-test status
-
-See `SMOKE_TEST_RESULTS.md` for the latest recorded smoke execution notes. That file documents observed results in a specific environment; it is not a statement that every environment will fail in the same way.
 
 ## Recommended next steps
 
