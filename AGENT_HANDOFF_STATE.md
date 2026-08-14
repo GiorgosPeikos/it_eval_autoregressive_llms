@@ -601,3 +601,11 @@ State after step 30:
 
 State after step 31:
 - external Python projects no longer need to import internal runner modules.
+
+## Step 32. Add the unified user CLI
+
+- Added the `it-eval evaluate` console entry point.
+- Kept existing component-specific commands for advanced and backward-compatible use.
+
+State after step 32:
+- installed users have one discoverable top-level command for normal evaluation.

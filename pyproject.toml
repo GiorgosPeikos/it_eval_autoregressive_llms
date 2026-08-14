@@ -24,6 +24,7 @@ dev = [
 ]
 
 [project.scripts]
+it-eval = "it_eval_framework.cli:main"
 it-eval-run-all = "it_eval_framework.runners.run_all:main"
 it-eval-run-lighteval = "it_eval_framework.runners.run_lighteval:main"
 it-eval-run-blimp-it = "it_eval_framework.runners.run_blimp_it:main"

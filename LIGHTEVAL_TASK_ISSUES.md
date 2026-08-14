@@ -183,3 +183,4 @@ Interpretation:
 - 2026-08-14: fixed Linux CI assertions for Windows path compatibility helpers; task classifications are unchanged.
 - 2026-08-14: rebuilt the real-model Colab launcher with bounded defaults and optional `verified_windows` LightEval; task classifications are unchanged.
 - 2026-08-14: added the supported public Python evaluation entry point; task classifications are unchanged.
+- 2026-08-14: added the unified `it-eval evaluate` command; task classifications are unchanged.
