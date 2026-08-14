@@ -74,12 +74,7 @@ ITALIAN_LIGHTEVAL_TASKS = {
 
 DEFAULT_LIGHTEVAL_SUITES = {
     "quick": [
-        "mlmm_hellaswag.cf",
-        "xcopa.cf",
-        "global_mmlu.mcf",
         "squad_it.default",
-        "mkqa.entity",
-        "mlmm_truthfulqa.cf_mc1",
     ],
     "full": [
         "mlmm_hellaswag.cf",
