@@ -514,3 +514,10 @@ State after step 19:
 
 State after step 20:
 - user-facing documentation matches the implemented result schema.
+
+## Step 21. Expand normalized-result regression coverage
+
+- Added coverage for subject-expanded task ids, aggregate rows, non-zero few-shot settings, absent standard errors, and legacy benchmark payloads.
+
+State after step 21:
+- the normalized schema and its backward-compatible aggregation fallback have explicit regression tests.
