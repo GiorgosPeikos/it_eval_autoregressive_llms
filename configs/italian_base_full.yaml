@@ -1,0 +1,30 @@
+run_name: italian_base_full
+model:
+  source: "meta-llama/Llama-3.2-1B"
+  dtype: auto
+  device: cpu
+  batch_size: 1
+output:
+  root_dir: evaluation_results
+  overwrite: false
+  save_details: true
+runtime:
+  seed: 13
+  python_executable: "python"
+  lighteval_command: "lighteval"
+lighteval:
+  enabled: true
+  suite: full
+  dataset_loading_processes: 1
+blimp_it:
+  enabled: true
+perplexity:
+  enabled: true
+  dataset_path: "/path/to/heldout_ansa.jsonl"
+  text_field: text
+  sequence_length: 1024
+  stride: 512
+  preserve_document_boundaries: true
+generation:
+  enabled: true
+  prompts_path: configs/generation_prompts.yaml

@@ -1,0 +1,27 @@
+run_name: local_checkpoint_eval
+model:
+  source: "C:/models/italian-base/checkpoint-120000"
+  tokenizer_source: "C:/models/italian-base/tokenizer"
+  dtype: bfloat16
+  device: cuda:0
+  batch_size: 2
+output:
+  root_dir: evaluation_results
+runtime:
+  seed: 13
+  python_executable: "python"
+  lighteval_command: "lighteval"
+lighteval:
+  enabled: true
+  suite: quick
+blimp_it:
+  enabled: true
+perplexity:
+  enabled: true
+  dataset_path: "C:/data/heldout_ansa.jsonl"
+  text_field: text
+  sequence_length: 1024
+  stride: 512
+generation:
+  enabled: true
+  prompts_path: configs/generation_prompts.yaml

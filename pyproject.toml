@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "it-eval-framework"
+version = "0.1.0"
+description = "Reproducible Italian evaluation framework for autoregressive Hugging Face language models."
+readme = "README.md"
+requires-python = ">=3.10,<3.14"
+dependencies = [
+  "datasets>=3.6,<4",
+  "huggingface_hub>=0.30.2,<1.0",
+  "lighteval[multilingual]==0.13.0",
+  "pandas>=2.2.0",
+  "pydantic>=2.9.0",
+  "pyyaml>=6.0.0",
+  "torch>=2.1.0",
+  "transformers>=4.54.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+]
+
+[project.scripts]
+it-eval-run-all = "it_eval_framework.runners.run_all:main"
+it-eval-run-lighteval = "it_eval_framework.runners.run_lighteval:main"
+it-eval-run-blimp-it = "it_eval_framework.runners.run_blimp_it:main"
+it-eval-run-perplexity = "it_eval_framework.runners.run_perplexity:main"
+it-eval-run-generation = "it_eval_framework.runners.run_generation:main"
+it-eval-aggregate = "it_eval_framework.reporting.aggregate_results:main"
+it-eval-compare = "it_eval_framework.reporting.compare_checkpoints:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

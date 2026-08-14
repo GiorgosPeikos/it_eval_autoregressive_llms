@@ -1,0 +1,8 @@
+[console_scripts]
+it-eval-aggregate = it_eval_framework.reporting.aggregate_results:main
+it-eval-compare = it_eval_framework.reporting.compare_checkpoints:main
+it-eval-run-all = it_eval_framework.runners.run_all:main
+it-eval-run-blimp-it = it_eval_framework.runners.run_blimp_it:main
+it-eval-run-generation = it_eval_framework.runners.run_generation:main
+it-eval-run-lighteval = it_eval_framework.runners.run_lighteval:main
+it-eval-run-perplexity = it_eval_framework.runners.run_perplexity:main

@@ -1,0 +1,37 @@
+run_name: italian_base_quick
+model:
+  source: "sshleifer/tiny-gpt2"
+  tokenizer_source: "sshleifer/tiny-gpt2"
+  dtype: auto
+  device: cpu
+  batch_size: 1
+output:
+  root_dir: evaluation_results
+  overwrite: false
+  save_details: true
+runtime:
+  seed: 13
+  python_executable: "python"
+  lighteval_command: "lighteval"
+lighteval:
+  enabled: true
+  suite: quick
+  max_samples: 2
+  dataset_loading_processes: 1
+blimp_it:
+  enabled: true
+  max_samples: 4
+perplexity:
+  enabled: true
+  dataset_repo: "roneneldan/TinyStories"
+  split: validation
+  text_field: text
+  sequence_length: 128
+  stride: 64
+  preserve_document_boundaries: true
+  max_documents: 3
+generation:
+  enabled: true
+  prompts_path: configs/generation_prompts.yaml
+  max_prompts: 3
+  seed: 13

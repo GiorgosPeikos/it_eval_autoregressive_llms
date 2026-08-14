@@ -1,0 +1,104 @@
+from __future__ import annotations
+
+import argparse
+import os
+import subprocess
+from pathlib import Path
+
+from it_eval_framework.config import load_config
+from it_eval_framework.runners.common import mark_finished, mark_started, prepare_run
+from it_eval_framework.task_registry import LIGHTEVAL_VERSION, resolve_task_aliases
+from it_eval_framework.utils.io import read_json, write_json
+
+
+def build_model_args(config) -> str:
+    items = {
+        "model_name": config.model.source,
+        "revision": config.model.revision,
+        "tokenizer": config.model.tokenizer_id,
+        "dtype": config.model.dtype,
+        "device": config.model.device,
+        "batch_size": config.model.batch_size,
+        "trust_remote_code": str(config.model.trust_remote_code).lower(),
+    }
+    if config.model.max_model_length:
+        items["max_length"] = config.model.max_model_length
+    return ",".join(f"{key}={value}" for key, value in items.items() if value is not None)
+
+
+def latest_results_json(output_dir: Path) -> Path | None:
+    candidates = sorted(output_dir.rglob("results*.json"))
+    return candidates[-1] if candidates else None
+
+
+def run(config_path: str) -> Path:
+    config = load_config(config_path)
+    if not config.lighteval.enabled:
+        raise ValueError("LightEval is disabled in this config.")
+
+    run_dir, state = prepare_run(config)
+    if state.is_complete("lighteval") and not config.output.overwrite:
+        return run_dir
+
+    task_names = resolve_task_aliases(config.lighteval.task_aliases)
+    lighteval_dir = run_dir / "lighteval_raw"
+    mark_started(run_dir, "lighteval")
+    state.mark("lighteval", "running", task_names=task_names)
+
+    command = [
+        config.runtime.lighteval_command,
+        "accelerate",
+        build_model_args(config),
+        ",".join(task_names),
+        "--load-tasks-multilingual",
+        "--output-dir",
+        str(lighteval_dir),
+        "--dataset-loading-processes",
+        str(config.lighteval.dataset_loading_processes),
+        "--num-fewshot-seeds",
+        str(config.lighteval.num_fewshot_seeds),
+    ]
+    if config.output.save_details:
+        command.append("--save-details")
+    if config.lighteval.max_samples:
+        command.extend(["--max-samples", str(config.lighteval.max_samples)])
+    command.extend(config.lighteval.extra_args)
+
+    env = os.environ.copy()
+    env.setdefault("HF_DATASETS_TRUST_REMOTE_CODE", "1")
+    completed = subprocess.run(command, check=False, text=True, capture_output=True, env=env)
+    (run_dir / "lighteval_stdout.log").write_text(completed.stdout, encoding="utf-8")
+    (run_dir / "lighteval_stderr.log").write_text(completed.stderr, encoding="utf-8")
+    if completed.returncode != 0:
+        raise RuntimeError(
+            f"LightEval failed with exit code {completed.returncode}. "
+            f"See {run_dir / 'lighteval_stdout.log'} and {run_dir / 'lighteval_stderr.log'}."
+        )
+
+    raw_results_path = latest_results_json(lighteval_dir)
+    if raw_results_path is None:
+        raise FileNotFoundError(f"No LightEval JSON results found under {lighteval_dir}")
+
+    raw_results = read_json(raw_results_path)
+    benchmark_payload = {
+        "backend": "lighteval",
+        "lighteval_version": LIGHTEVAL_VERSION,
+        "resolved_tasks": task_names,
+        "results_file": str(raw_results_path),
+        "raw_results": raw_results,
+    }
+    write_json(run_dir / "benchmark_results.json", benchmark_payload)
+    state.mark("lighteval", "completed", results_file=str(raw_results_path))
+    mark_finished(run_dir, "lighteval", {"resolved_tasks": task_names})
+    return run_dir
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", required=True)
+    args = parser.parse_args()
+    run(args.config)
+
+
+if __name__ == "__main__":
+    main()

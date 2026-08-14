@@ -1,0 +1,10 @@
+.idea/
+.pytest_cache/
+.venv/
+__pycache__/
+*.pyc
+
+evaluation_results/
+data/
+
+*.log
