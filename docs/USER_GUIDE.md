@@ -35,6 +35,20 @@ Until the first PyPI release, install the package directly from GitHub:
 python -m pip install "it-eval-framework @ git+https://github.com/GiorgosPeikos/it_eval_autoregressive_llms.git"
 ```
 
+After a PyPI release, the equivalent command will be `python -m pip install it-eval-framework`. Do not use that command until a release appears on PyPI.
+
+## Maintainer release checklist
+
+The repository builds as the `it-eval-framework` distribution. Before creating the first `v0.1.0` tag:
+
+1. choose and add a repository license
+2. create or reserve the `it-eval-framework` project on PyPI
+3. configure a PyPI trusted publisher for `.github/workflows/release.yml` with environment `pypi`
+4. confirm the version in `pyproject.toml`
+5. push the version tag; the workflow builds, validates, and publishes the distributions
+
+Package-name availability was checked during preparation, but must be checked again immediately before the first release.
+
 Then evaluate a Hub model:
 
 ```bash

@@ -625,3 +625,11 @@ State after step 33:
 
 State after step 34:
 - a new user can identify the correct path and execute a bounded first evaluation without reading internal architecture documentation.
+
+## Step 35. Prepare the package release path
+
+- Added PyPI metadata, project URLs, package classifiers, and a tag-triggered trusted-publishing workflow.
+- Documented the manual license, PyPI project, and trusted-publisher prerequisites.
+
+State after step 35:
+- GitHub installation is usable now; PyPI publication is prepared but intentionally waits for maintainer setup and a version tag.

@@ -8,6 +8,20 @@ version = "0.1.0"
 description = "Reproducible Italian evaluation framework for autoregressive Hugging Face language models."
 readme = "README.md"
 requires-python = ">=3.10,<3.14"
+authors = [
+  {name = "Giorgos Peikos"},
+]
+keywords = ["italian", "language-model", "evaluation", "perplexity", "lighteval"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
   "datasets>=3.6,<4",
   "huggingface_hub>=0.30.2,<1.0",
@@ -22,6 +36,12 @@ dependencies = [
 dev = [
   "pytest>=8.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/GiorgosPeikos/it_eval_autoregressive_llms"
+Documentation = "https://github.com/GiorgosPeikos/it_eval_autoregressive_llms/blob/main/docs/USER_GUIDE.md"
+Repository = "https://github.com/GiorgosPeikos/it_eval_autoregressive_llms"
+Issues = "https://github.com/GiorgosPeikos/it_eval_autoregressive_llms/issues"
 
 [project.scripts]
 it-eval = "it_eval_framework.cli:main"

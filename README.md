@@ -38,6 +38,8 @@ Clone the repository and use the pinned development installation described below
 
 For model revisions, local checkpoints, preset selection, LightEval installation, result interpretation, and archival guidance, see [Evaluate your Italian language model](docs/USER_GUIDE.md).
 
+The project is PyPI-ready but not yet published. Until the first tagged release, use the GitHub installation command above.
+
 ## Scope
 
 The framework supports:
