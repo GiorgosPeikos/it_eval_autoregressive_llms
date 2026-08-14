@@ -1,6 +1,7 @@
 import math
 
 import torch
+import pytest
 
 from it_eval_framework.metrics.perplexity import finalize_perplexity, sliding_windows
 from it_eval_framework.metrics.perplexity import compute_window_nll
@@ -14,6 +15,11 @@ def test_finalize_perplexity():
     payload = finalize_perplexity(6.0, 3)
     assert payload["mean_loss"] == 2.0
     assert math.isclose(payload["token_perplexity"], math.exp(2.0))
+
+
+def test_finalize_perplexity_rejects_empty_evaluation():
+    with pytest.raises(ValueError, match="at least one scored target token"):
+        finalize_perplexity(0.0, 0)
 
 
 class _RecordingModel:

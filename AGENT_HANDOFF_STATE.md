@@ -499,3 +499,11 @@ State after step 17:
 
 State after step 18:
 - `reproducibility.json` explicitly states whether configurable inputs are fully pinned.
+
+## Step 19. Reject empty perplexity evaluations
+
+- Perplexity finalization now raises when zero target tokens were scored.
+- Added a regression test for empty input.
+
+State after step 19:
+- empty corpora and one-token-only inputs cannot silently report perplexity `1.0`.

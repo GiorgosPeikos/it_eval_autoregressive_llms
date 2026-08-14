@@ -43,7 +43,9 @@ def compute_window_nll(
 
 
 def finalize_perplexity(total_nll: float, total_tokens: int) -> dict:
-    mean_loss = total_nll / max(total_tokens, 1)
+    if total_tokens <= 0:
+        raise ValueError("Perplexity requires at least one scored target token.")
+    mean_loss = total_nll / total_tokens
     return {
         "total_negative_log_likelihood": total_nll,
         "total_token_count": total_tokens,
