@@ -2,13 +2,27 @@ from __future__ import annotations
 
 import argparse
 import os
+import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 from it_eval_framework.config import load_config
 from it_eval_framework.runners.common import mark_finished, mark_started, prepare_run
 from it_eval_framework.task_registry import LIGHTEVAL_VERSION, resolve_task_aliases
 from it_eval_framework.utils.io import read_json, write_json
+
+
+def apply_windows_hf_cache_overrides(env: dict[str, str]) -> None:
+    if os.name != "nt":
+        return
+
+    cache_root = Path(r"C:\iteval_hf")
+    cache_root.mkdir(parents=True, exist_ok=True)
+
+    env.setdefault("HF_HOME", str(cache_root))
+    env.setdefault("HF_HUB_CACHE", str(cache_root / "hub"))
+    env.setdefault("HF_DATASETS_CACHE", str(cache_root / "datasets"))
 
 
 def build_model_args(config) -> str:
@@ -45,8 +59,13 @@ def run(config_path: str) -> Path:
     mark_started(run_dir, "lighteval")
     state.mark("lighteval", "running", task_names=task_names)
 
+    base_command = [config.runtime.lighteval_command]
+    if os.name == "nt":
+        base_command = [sys.executable, "-m", "it_eval_framework.runners.lighteval_entry"]
+    elif shutil.which(config.runtime.lighteval_command) is None:
+        base_command = [sys.executable, "-m", "lighteval"]
     command = [
-        config.runtime.lighteval_command,
+        *base_command,
         "accelerate",
         build_model_args(config),
         ",".join(task_names),
@@ -67,6 +86,7 @@ def run(config_path: str) -> Path:
     env = os.environ.copy()
     env.setdefault("HF_DATASETS_TRUST_REMOTE_CODE", "1")
     env.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
+    apply_windows_hf_cache_overrides(env)
     print(f"[lighteval] Running tasks: {', '.join(task_names)}", flush=True)
     print(f"[lighteval] Log file: {run_dir / 'lighteval_stdout.log'}", flush=True)
     print(

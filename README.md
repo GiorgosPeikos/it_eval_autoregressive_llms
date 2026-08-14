@@ -71,6 +71,18 @@ python -m pip install -r constraints/lighteval-python310-313.txt
 python -m pip install -e .[dev] --no-deps
 ```
 
+For larger LightEval runs that touch many Hub datasets in one session, authenticate with Hugging Face first to avoid anonymous Hub rate limits:
+
+```powershell
+hf auth login
+```
+
+Or set a token explicitly:
+
+```powershell
+$env:HF_TOKEN="your_token_here"
+```
+
 ## Quick start
 
 Run tests first:
@@ -85,13 +97,21 @@ Run the compact evaluation suite:
 python -m it_eval_framework.runners.run_all --config configs/italian_base_quick.yaml
 ```
 
-The default quick config currently skips LightEval. That keeps the smoke path reproducible while several upstream LightEval task integrations remain operationally unstable in the pinned runtime.
+The default quick config currently skips LightEval. That keeps the smoke path reproducible while the broader LightEval stack remains a separately managed path.
 
 Run the full suite:
 
 ```bash
 python -m it_eval_framework.runners.run_all --config configs/italian_base_full.yaml
 ```
+
+Run the verified bounded LightEval subset on local Windows:
+
+```bash
+python -m it_eval_framework.runners.run_lighteval --config configs/lighteval_verified_windows.yaml
+```
+
+On the local Windows path validated on **August 14, 2026**, this full bounded LightEval run was successfully re-verified after authenticated Hugging Face access was configured. If you hit `429 Too Many Requests` from the Hub, authenticate and rerun before treating it as a repo failure.
 
 Run individual stages:
 
@@ -101,6 +121,25 @@ python -m it_eval_framework.runners.run_blimp_it --config configs/italian_base_f
 python -m it_eval_framework.runners.run_perplexity --config configs/italian_base_full.yaml
 python -m it_eval_framework.runners.run_generation --config configs/italian_base_full.yaml
 ```
+
+## LightEval stabilization workflow
+
+Use the default quick config for a stable smoke test. Treat LightEval separately until a verified task subset is established.
+
+For one-task LightEval probing, start from:
+
+```bash
+python -m it_eval_framework.runners.run_lighteval --config configs/lighteval_task_probe.yaml
+```
+
+Edit `configs/lighteval_task_probe.yaml` one task alias at a time. Classify each task as:
+
+- working
+- upstream dataset broken
+- LightEval runtime bug
+- unsupported in the pinned stack
+
+The current supported bounded subset is already promoted in `configs/lighteval_verified_windows.yaml` and in the `verified_windows` suite.
 
 ## Colab notebooks
 
@@ -206,6 +245,34 @@ These are operational issues, not framework design constraints.
 - some datasets may be gated, rate-limited, or temporarily unavailable
 - the current LightEval wrapper preserves raw results and verified task IDs, but does not yet normalize every LightEval metric into a richer per-task schema
 - `global_mmlu` and `mlmm_mmlu` expand to subject-level tasks, so aggregation is still task-level
+- `mkqa.long_answer` is excluded from the supported bounded probe path because the current probe finds no documents to evaluate for `mkqa_ita:long_answer`
+
+## Supported bounded LightEval path
+
+On the local Windows target validated on **2026-08-14** with Python `3.12.10`, the supported LightEval subset is:
+
+- the `verified_windows` suite in [src/it_eval_framework/task_registry.py](C:/Users/User/PycharmProjects/PythonProject/it_eval_autoregressive_llms/src/it_eval_framework/task_registry.py)
+- the matching config [configs/lighteval_verified_windows.yaml](C:/Users/User/PycharmProjects/PythonProject/it_eval_autoregressive_llms/configs/lighteval_verified_windows.yaml)
+
+That subset contains all aliases that completed in bounded local probes under the current wrapper path, including:
+
+- `mlmm_hellaswag.*`
+- `xcopa.*`
+- `xcsqa.*`
+- `xcodah.*`
+- `global_mmlu.mcf`
+- `mlmm_mmlu.*`
+- `mlmm_arc_challenge.*`
+- `m3exams.*`
+- `exams.*`
+- `mlmm_truthfulqa.*`
+- `squad_it.default`
+- `mkqa.entity`, `mkqa.short_phrase`, `mkqa.number`, `mkqa.number_with_unit`, `mkqa.date`, `mkqa.binary`
+- `mintaka.default`
+
+Excluded from that supported bounded path:
+
+- `mkqa.long_answer`, because the current bounded probe still raises `Task mkqa_ita:long_answer has no documents to evaluate skipping.`
 
 ## Adding a new Italian task
 

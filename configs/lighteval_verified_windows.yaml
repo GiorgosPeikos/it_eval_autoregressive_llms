@@ -1,0 +1,29 @@
+run_name: lighteval_verified_windows
+model:
+  source: "sshleifer/tiny-gpt2"
+  tokenizer_source: "sshleifer/tiny-gpt2"
+  dtype: auto
+  device: cpu
+  batch_size: 1
+output:
+  root_dir: evaluation_results
+  overwrite: false
+  save_details: true
+runtime:
+  seed: 13
+  python_executable: "python"
+  lighteval_command: "lighteval"
+lighteval:
+  enabled: true
+  suite: verified_windows
+  task_aliases: []
+  max_samples: 2
+  dataset_loading_processes: 1
+  num_fewshot_seeds: 1
+  extra_args: []
+blimp_it:
+  enabled: false
+perplexity:
+  enabled: false
+generation:
+  enabled: false
