@@ -104,6 +104,7 @@ If you are new to the repository, use this order:
 The three most useful entry points are:
 
 - quick smoke test in Colab: `notebooks/colab_quickstart.ipynb`
+- real-model evaluation in Colab: `notebooks/colab_model_eval_template.ipynb`
 - local model config template: `configs/local_model_example.yaml`
 - benchmark reference for paper writing: `docs/TASK_REFERENCE.md`
 

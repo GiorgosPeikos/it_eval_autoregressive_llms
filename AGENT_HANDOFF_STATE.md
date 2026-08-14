@@ -585,3 +585,11 @@ State after step 28:
 
 State after step 29:
 - the same unit suite is valid on both Windows development hosts and Linux CI runners.
+
+## Step 30. Make Colab the primary real-model onboarding path
+
+- Rebuilt the model-evaluation notebook around one settings cell, one bounded `run_all` call, visible results, and ZIP download.
+- Added Hugging Face token, Google Drive checkpoint, GPU, immutable revision, and progressive-limit guidance.
+
+State after step 30:
+- a new user can evaluate a Hub model or Drive checkpoint in Colab without manually assembling runner commands.
