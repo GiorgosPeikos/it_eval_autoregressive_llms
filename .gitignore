@@ -3,6 +3,7 @@
 .venv/
 __pycache__/
 *.pyc
+*.egg-info/
 
 evaluation_results/
 data/
