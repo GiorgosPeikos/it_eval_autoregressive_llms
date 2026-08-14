@@ -593,3 +593,11 @@ State after step 29:
 
 State after step 30:
 - a new user can evaluate a Hub model or Drive checkpoint in Colab without manually assembling runner commands.
+
+## Step 31. Add the public Python evaluation API
+
+- Added `it_eval_framework.evaluate()` as the supported package entry point.
+- It accepts either a YAML path or an `EvaluationConfig` object and returns the run directory.
+
+State after step 31:
+- external Python projects no longer need to import internal runner modules.

@@ -21,6 +21,7 @@ The framework supports:
 - Controlled generation with configurable decoding profiles and diagnostics
 - Stable run directories, resumable step state, environment capture, and machine-readable outputs
 - Aggregation and checkpoint comparison utilities
+- A supported Python entry point: `from it_eval_framework import evaluate`
 - A shared normalized metric-row schema across LightEval, BLiMP-IT, perplexity, and generation summaries
 
 ## Repository structure
