@@ -570,3 +570,10 @@ State after step 26:
 
 State after step 27:
 - the complete non-LightEval bounded path passes end to end in the validated Python 3.12 environment.
+
+## Step 28. Finalize CI dependency installation
+
+- Explicitly install pytest because the editable repository install intentionally uses `--no-deps`.
+
+State after step 28:
+- the CI workflow declares every tool it invokes.

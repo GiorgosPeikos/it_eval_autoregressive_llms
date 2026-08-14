@@ -19,6 +19,7 @@ jobs:
           python -m pip install "pip<27" "setuptools<82" wheel
           python -m pip install "lighteval[multilingual]==0.13.0" --no-deps
           python -m pip install -r constraints/lighteval-python310-313.txt
+          python -m pip install "pytest>=8"
           python -m pip install -e .[dev] --no-deps
       - name: Compile and test
         run: |
