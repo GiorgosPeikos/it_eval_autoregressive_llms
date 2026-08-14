@@ -21,6 +21,7 @@ The framework supports:
 - Controlled generation with configurable decoding profiles and diagnostics
 - Stable run directories, resumable step state, environment capture, and machine-readable outputs
 - Aggregation and checkpoint comparison utilities
+- A shared normalized metric-row schema across LightEval, BLiMP-IT, perplexity, and generation summaries
 
 ## Repository structure
 
@@ -338,6 +339,7 @@ These are operational issues, not framework design constraints.
 - some datasets may be gated, rate-limited, or temporarily unavailable
 - the default Italian perplexity example uses `gsarti/clean_mc4_it`; remote loader code is controlled explicitly by `perplexity.dataset_trust_remote_code`, so inspect the dataset repository before enabling it for a new source
 - the LightEval wrapper preserves the complete raw payload and also emits versioned long-form rows with task id, few-shot setting, metric value, and standard error where available
+- LightEval output also records the Hugging Face dataset repository refs present in its isolated cache, providing the commit inventory needed to archive or investigate the run
 - `global_mmlu` and `mlmm_mmlu` expand to subject-level tasks, so aggregation is still task-level
 - `mkqa.long_answer` is excluded from the supported bounded probe path because the current probe finds no documents to evaluate for `mkqa_ita:long_answer`
 
@@ -385,7 +387,6 @@ See `SMOKE_TEST_RESULTS.md` for the latest recorded smoke execution notes. That 
 1. run publication-scale evaluations with a model and Italian corpus appropriate to the research question
 2. pin `model.revision` and `perplexity.dataset_revision` to immutable commit hashes for archival runs
 3. add tokenizer and vocabulary compatibility checks before execution
-4. add explicit comparison warnings when task or prompt settings differ across runs
 
 ## Reproducibility outputs
 
@@ -396,7 +397,7 @@ Every run directory contains:
 - `reproducibility.json`: result-schema version, configuration hash, and random seed
 - `reproducibility.json` also reports `fully_pinned_inputs` and actionable input-pinning issues
 - component metadata with UTC start and completion times
-- raw component outputs, plus normalized LightEval metric rows in `benchmark_results.json`
+- raw component outputs, plus normalized metric rows for every evaluation component
 
 For an archival run, use Python 3.10–3.13, install the pinned LightEval constraints, set immutable model and dataset revisions, start from a clean Git worktree, and retain the entire run directory. A dirty worktree is recorded, but cannot be reconstructed from the hash alone unless its patch is also preserved.
 For local checkpoints, calculate an archive digest and set `model.artifact_sha256`; the framework records and checks for the supplied digest but does not hash multi-gigabyte checkpoints during every run.

@@ -12,6 +12,7 @@ from it_eval_framework.reporting.normalize_results import RESULT_SCHEMA_VERSION,
 from it_eval_framework.runners.common import mark_finished, mark_started, prepare_run
 from it_eval_framework.task_registry import LIGHTEVAL_VERSION, resolve_task_aliases
 from it_eval_framework.utils.io import read_json, write_json
+from it_eval_framework.utils.env import huggingface_dataset_revisions
 
 
 def apply_windows_hf_cache_overrides(env: dict[str, str]) -> None:
@@ -140,6 +141,7 @@ def run(config_path: str) -> Path:
         "resolved_tasks": task_names,
         "results_file": str(raw_results_path),
         "normalized_metrics": normalize_lighteval_results(raw_results),
+        "huggingface_dataset_revision_inventory": huggingface_dataset_revisions(env),
         "raw_results": raw_results,
     }
     write_json(run_dir / "benchmark_results.json", benchmark_payload)

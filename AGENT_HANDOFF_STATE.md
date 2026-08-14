@@ -545,3 +545,11 @@ State after step 23:
 
 State after step 24:
 - checkpoint comparisons surface configuration mismatches before results are interpreted.
+
+## Step 25. Capture the LightEval dataset revision inventory
+
+- Added the Hugging Face dataset repository refs present in LightEval's isolated cache to `benchmark_results.json`.
+- Added a focused cache-layout regression test.
+
+State after step 25:
+- each new LightEval result preserves a dataset commit inventory alongside its raw task output.

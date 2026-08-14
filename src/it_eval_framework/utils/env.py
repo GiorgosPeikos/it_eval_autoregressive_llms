@@ -64,3 +64,20 @@ def environment_snapshot(workdir: str | Path) -> dict:
     }
     snapshot.update(git_worktree_state(workdir))
     return snapshot
+
+
+def huggingface_dataset_revisions(env: dict[str, str]) -> list[dict[str, str]]:
+    hub_root = Path(env.get("HF_HUB_CACHE") or Path(env.get("HF_HOME", Path.home() / ".cache" / "huggingface")) / "hub")
+    rows = []
+    if not hub_root.exists():
+        return rows
+    for repo_dir in sorted(hub_root.glob("datasets--*")):
+        repo_id = repo_dir.name.removeprefix("datasets--").replace("--", "/")
+        refs_dir = repo_dir / "refs"
+        if not refs_dir.exists():
+            continue
+        for ref_path in sorted(path for path in refs_dir.rglob("*") if path.is_file()):
+            revision = ref_path.read_text(encoding="utf-8").strip()
+            if revision:
+                rows.append({"dataset_repo": repo_id, "ref": ref_path.relative_to(refs_dir).as_posix(), "revision": revision})
+    return rows

@@ -176,3 +176,4 @@ Interpretation:
 - 2026-08-14: added evaluation-config discovery so support YAML is excluded from config audits; task classifications are unchanged.
 - 2026-08-14: extended the normalized metric-row schema to every evaluation component; LightEval task classifications are unchanged.
 - 2026-08-14: added non-blocking compatibility warnings for result comparisons; task classifications are unchanged.
+- 2026-08-14: LightEval results now include the Hugging Face dataset revision inventory from the isolated cache; task classifications are unchanged.
