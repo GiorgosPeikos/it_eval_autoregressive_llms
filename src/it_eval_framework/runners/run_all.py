@@ -20,6 +20,8 @@ def run(config_path: str) -> Path:
         print("[run_all] Starting LightEval", flush=True)
         run_lighteval(config_path)
         print("[run_all] Finished LightEval", flush=True)
+    else:
+        print("[run_all] Skipping LightEval", flush=True)
     if config.blimp_it.enabled:
         print("[run_all] Starting BLiMP-IT", flush=True)
         run_blimp_it(config_path)

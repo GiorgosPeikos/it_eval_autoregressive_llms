@@ -14,7 +14,7 @@ runtime:
   python_executable: "python"
   lighteval_command: "lighteval"
 lighteval:
-  enabled: true
+  enabled: false
   suite: quick
   max_samples: 2
   dataset_loading_processes: 1

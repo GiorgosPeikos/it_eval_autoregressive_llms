@@ -85,7 +85,7 @@ Run the compact evaluation suite:
 python -m it_eval_framework.runners.run_all --config configs/italian_base_quick.yaml
 ```
 
-The default quick LightEval suite is intentionally minimal and currently uses only `squad_it.default`. This keeps the smoke path reproducible while some third-party dataset-backed LightEval tasks remain operationally unstable upstream.
+The default quick config currently skips LightEval. That keeps the smoke path reproducible while several upstream LightEval task integrations remain operationally unstable in the pinned runtime.
 
 Run the full suite:
 
