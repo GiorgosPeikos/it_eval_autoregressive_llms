@@ -633,3 +633,12 @@ State after step 34:
 
 State after step 35:
 - GitHub installation is usable now; PyPI publication is prepared but intentionally waits for maintainer setup and a version tag.
+
+## Step 36. Validate the installed-package user journey
+
+- Built and installed the wheel into an external temporary target and verified API import plus packaged prompts.
+- Ran a fresh end-to-end bounded evaluation through `evaluate(model=..., preset="quick")`.
+- Revalidated both Colab notebooks as notebook-format JSON.
+
+State after step 36:
+- the Colab, installed CLI/API, packaged-resource, and repository test paths are all verified.

@@ -14,12 +14,14 @@ This is the current smoke-test summary. Detailed historical investigation is ret
 
 ## Current results
 
-- unit tests: 23 passing
+- unit tests: 33 passing
 - default quick path: passed end to end from a fresh run directory on 2026-08-14
 - BLiMP-IT bounded smoke: passing
 - controlled generation bounded smoke: passing
 - held-out perplexity bounded smoke: passing
 - normalized aggregation and Markdown/CSV report generation: passing
+- installed-wheel import and packaged preset resources: passing
+- public `evaluate(model=..., preset="quick")` end-to-end path: passing
 - bounded Windows LightEval suite: passing for every included alias
 
 The supported bounded LightEval suite contains 39 aliases. `mkqa.long_answer` is intentionally excluded because the current probe reports no documents to evaluate.
