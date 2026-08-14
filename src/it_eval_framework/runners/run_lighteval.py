@@ -69,6 +69,18 @@ def run(config_path: str) -> Path:
     env.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
     print(f"[lighteval] Running tasks: {', '.join(task_names)}", flush=True)
     print(f"[lighteval] Log file: {run_dir / 'lighteval_stdout.log'}", flush=True)
+    print(
+        "[lighteval] Phase 1/3: loading task definitions and downloading datasets.",
+        flush=True,
+    )
+    print(
+        "[lighteval] Phase 2/3: preparing task documents and filtering benchmark splits.",
+        flush=True,
+    )
+    print(
+        "[lighteval] Phase 3/3: running model inference after dataset preparation completes.",
+        flush=True,
+    )
     output_lines: list[str] = []
     with subprocess.Popen(
         command,

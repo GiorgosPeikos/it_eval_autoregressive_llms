@@ -36,10 +36,16 @@ def load_model(model_config: ModelConfig):
     }
     if torch_dtype != "auto":
         kwargs["torch_dtype"] = torch_dtype
+    print(
+        f"[model] Loading model '{model_config.source}' with dtype={model_config.dtype} on device={model_config.device}",
+        flush=True,
+    )
     model = AutoModelForCausalLM.from_pretrained(model_config.source, **kwargs)
     model.eval()
     if model_config.device not in {"auto", "cpu"}:
         model.to(model_config.device)
+    resolved_device = next(model.parameters()).device
+    print(f"[model] Model ready on device={resolved_device}", flush=True)
     return model
 
 
