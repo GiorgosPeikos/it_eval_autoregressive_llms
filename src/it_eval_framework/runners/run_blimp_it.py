@@ -41,11 +41,30 @@ def run(config_path: str):
     grouped = defaultdict(lambda: {"correct": 0, "total": 0})
     correct = 0
     total = 0
-    subsets = [config.blimp_it.dataset_subset] if config.blimp_it.dataset_subset else get_dataset_config_names(config.blimp_it.dataset_repo)
+    subsets = (
+        [config.blimp_it.dataset_subset]
+        if config.blimp_it.dataset_subset
+        else get_dataset_config_names(config.blimp_it.dataset_repo, revision=config.blimp_it.dataset_revision)
+    )
     remaining = config.blimp_it.max_samples
+    dataset_metadata = []
 
     for subset in subsets:
-        dataset = load_dataset(config.blimp_it.dataset_repo, subset, split=config.blimp_it.split)
+        dataset = load_dataset(
+            config.blimp_it.dataset_repo,
+            subset,
+            split=config.blimp_it.split,
+            revision=config.blimp_it.dataset_revision,
+            trust_remote_code=config.blimp_it.dataset_trust_remote_code,
+        )
+        dataset_metadata.append(
+            {
+                "subset": subset,
+                "fingerprint": getattr(dataset, "_fingerprint", None),
+                "num_rows": len(dataset),
+                "version": str(dataset.info.version) if dataset.info.version else None,
+            }
+        )
         if remaining is not None:
             if remaining <= 0:
                 break
@@ -85,6 +104,8 @@ def run(config_path: str):
 
     results = {
         "dataset_repo": config.blimp_it.dataset_repo,
+        "dataset_revision": config.blimp_it.dataset_revision,
+        "dataset_metadata": dataset_metadata,
         "split": config.blimp_it.split,
         "overall_accuracy": correct / max(total, 1),
         "num_examples": total,

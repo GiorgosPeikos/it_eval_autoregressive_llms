@@ -2,6 +2,8 @@ run_name: lighteval_verified_windows
 model:
   source: "sshleifer/tiny-gpt2"
   tokenizer_source: "sshleifer/tiny-gpt2"
+  revision: "5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be"
+  tokenizer_revision: "5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be"
   dtype: auto
   device: cpu
   batch_size: 1

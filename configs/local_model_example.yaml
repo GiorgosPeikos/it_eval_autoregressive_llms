@@ -2,6 +2,7 @@ run_name: local_checkpoint_eval
 model:
   source: "C:/models/italian-base/checkpoint-120000"
   tokenizer_source: "C:/models/italian-base/tokenizer"
+  artifact_sha256: null  # Set to your archived checkpoint digest.
   dtype: bfloat16
   device: cuda:0
   batch_size: 2
@@ -16,6 +17,7 @@ lighteval:
   suite: quick
 blimp_it:
   enabled: true
+  dataset_revision: "4159ecb68388283488cb1d235a7e1946489bc62d"
 perplexity:
   enabled: true
   dataset_repo: "gsarti/clean_mc4_it"

@@ -490,3 +490,12 @@ State after step 16:
 
 State after step 17:
 - normalized LightEval comparisons no longer produce Cartesian task matches.
+
+## Step 18. Expand input reproducibility safeguards
+
+- Added pinned BLiMP-IT revisions and captured subset fingerprints, sizes, and versions.
+- Pinned the public tiny model/tokenizer in LightEval configs.
+- Added machine-readable warnings for unpinned remote models, datasets, and local artifacts without a supplied digest.
+
+State after step 18:
+- `reproducibility.json` explicitly states whether configurable inputs are fully pinned.

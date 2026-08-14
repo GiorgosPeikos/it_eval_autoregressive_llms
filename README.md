@@ -393,7 +393,9 @@ Every run directory contains:
 - `run_config.yaml`: the fully resolved configuration
 - `environment.json`: Python, package, platform, Git commit, dirty-worktree status, and a diff hash
 - `reproducibility.json`: result-schema version, configuration hash, and random seed
+- `reproducibility.json` also reports `fully_pinned_inputs` and actionable input-pinning issues
 - component metadata with UTC start and completion times
 - raw component outputs, plus normalized LightEval metric rows in `benchmark_results.json`
 
 For an archival run, use Python 3.10–3.13, install the pinned LightEval constraints, set immutable model and dataset revisions, start from a clean Git worktree, and retain the entire run directory. A dirty worktree is recorded, but cannot be reconstructed from the hash alone unless its patch is also preserved.
+For local checkpoints, calculate an archive digest and set `model.artifact_sha256`; the framework records and checks for the supplied digest but does not hash multi-gigabyte checkpoints during every run.

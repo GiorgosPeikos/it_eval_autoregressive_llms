@@ -22,6 +22,7 @@ lighteval:
   dataset_loading_processes: 1
 blimp_it:
   enabled: true
+  dataset_revision: "4159ecb68388283488cb1d235a7e1946489bc62d"
   max_samples: 4
 perplexity:
   enabled: true

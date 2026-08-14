@@ -20,6 +20,7 @@ class ModelConfig(BaseModel):
     device: str = "cpu"
     batch_size: int = 1
     max_model_length: int | None = None
+    artifact_sha256: str | None = Field(default=None, description="User-supplied digest for a local model artifact.")
 
     @property
     def tokenizer_id(self) -> str:
@@ -52,6 +53,8 @@ class BliMPITConfig(BaseModel):
     enabled: bool = True
     dataset_repo: str = "NeTSlab/BLiMP-IT"
     dataset_subset: str | None = None
+    dataset_revision: str | None = None
+    dataset_trust_remote_code: bool = False
     split: str = "test"
     max_samples: int | None = None
     phenomenon_field: str = "field"

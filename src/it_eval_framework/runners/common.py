@@ -11,6 +11,21 @@ from it_eval_framework.utils.io import ensure_dir, write_json, write_yaml
 from it_eval_framework.utils.run_state import RunState
 
 
+def reproducibility_issues(config: EvaluationConfig) -> list[str]:
+    issues = []
+    source = config.model.source
+    looks_local = Path(source).exists() or Path(source).drive != "" or source.startswith(("./", "../", "/"))
+    if looks_local and not config.model.artifact_sha256:
+        issues.append("Local model source has no model.artifact_sha256 content digest.")
+    if not looks_local and not config.model.revision:
+        issues.append("Remote model source is not pinned with model.revision.")
+    if config.blimp_it.enabled and not config.blimp_it.dataset_revision:
+        issues.append("BLiMP-IT dataset is not pinned with blimp_it.dataset_revision.")
+    if config.perplexity and config.perplexity.enabled and config.perplexity.dataset_repo and not config.perplexity.dataset_revision:
+        issues.append("Perplexity dataset is not pinned with perplexity.dataset_revision.")
+    return issues
+
+
 def prepare_run(config: EvaluationConfig) -> tuple[Path, RunState]:
     run_dir = build_run_directory(config)
     ensure_dir(run_dir)
@@ -24,6 +39,8 @@ def prepare_run(config: EvaluationConfig) -> tuple[Path, RunState]:
             "config_sha256_prefix": stable_hash(config_payload),
             "seed": config.runtime.seed,
             "run_directory": str(run_dir),
+            "issues": reproducibility_issues(config),
+            "fully_pinned_inputs": not reproducibility_issues(config),
         },
     )
     return run_dir, RunState(run_dir / "run_state.json")

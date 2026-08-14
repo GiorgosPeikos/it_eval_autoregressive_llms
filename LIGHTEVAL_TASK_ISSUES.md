@@ -169,3 +169,4 @@ Interpretation:
 
 - 2026-08-14: corrected overlapping-window perplexity accounting; this does not change LightEval task classifications.
 - 2026-08-14: corrected checkpoint comparison keys for normalized LightEval metrics; task classifications are unchanged.
+- 2026-08-14: pinned the tiny model/tokenizer in supported LightEval probe configs and added general reproducibility warnings; task classifications are unchanged.
