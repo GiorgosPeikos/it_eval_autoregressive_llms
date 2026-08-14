@@ -1,7 +1,13 @@
 # Italian Autoregressive LLM Evaluation Framework
 
-[![Open In Colab - Quickstart](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/GiorgosPeikos/it_eval_autoregressive_llms/blob/main/notebooks/colab_quickstart.ipynb)
-[![Open In Colab - Model Eval](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/GiorgosPeikos/it_eval_autoregressive_llms/blob/main/notebooks/colab_model_eval_template.ipynb)
+<p align="center">
+  <a href="https://colab.research.google.com/github/GiorgosPeikos/it_eval_autoregressive_llms/blob/main/notebooks/colab_quickstart.ipynb">
+    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab - Quickstart"/>
+  </a>
+  <a href="https://colab.research.google.com/github/GiorgosPeikos/it_eval_autoregressive_llms/blob/main/notebooks/colab_model_eval_template.ipynb">
+    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab - Model Eval"/>
+  </a>
+</p>
 
 This repository provides a reproducible evaluation framework for Italian decoder-only Hugging Face language models. It is designed for base models, not instruction-tuned or chat models, so it prioritizes continuation likelihood, conditional log-likelihood, perplexity, and controlled generation.
 
