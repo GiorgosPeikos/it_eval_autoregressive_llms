@@ -507,3 +507,10 @@ State after step 18:
 
 State after step 19:
 - empty corpora and one-token-only inputs cannot silently report perplexity `1.0`.
+
+## Step 20. Reconcile normalization documentation
+
+- Replaced the stale README limitation with the current raw-plus-normalized LightEval output contract.
+
+State after step 20:
+- user-facing documentation matches the implemented result schema.

@@ -171,3 +171,4 @@ Interpretation:
 - 2026-08-14: corrected checkpoint comparison keys for normalized LightEval metrics; task classifications are unchanged.
 - 2026-08-14: pinned the tiny model/tokenizer in supported LightEval probe configs and added general reproducibility warnings; task classifications are unchanged.
 - 2026-08-14: empty perplexity runs now fail explicitly instead of returning `1.0`; LightEval task classifications are unchanged.
+- 2026-08-14: reconciled README documentation with the normalized LightEval output schema; task classifications are unchanged.

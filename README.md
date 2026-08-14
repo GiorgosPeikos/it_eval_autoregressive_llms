@@ -336,7 +336,7 @@ These are operational issues, not framework design constraints.
 - LightEval multilingual tasks require the `multilingual` extra
 - some datasets may be gated, rate-limited, or temporarily unavailable
 - the default Italian perplexity example uses `gsarti/clean_mc4_it`; remote loader code is controlled explicitly by `perplexity.dataset_trust_remote_code`, so inspect the dataset repository before enabling it for a new source
-- the current LightEval wrapper preserves raw results and verified task IDs, but does not yet normalize every LightEval metric into a richer per-task schema
+- the LightEval wrapper preserves the complete raw payload and also emits versioned long-form rows with task id, few-shot setting, metric value, and standard error where available
 - `global_mmlu` and `mlmm_mmlu` expand to subject-level tasks, so aggregation is still task-level
 - `mkqa.long_answer` is excluded from the supported bounded probe path because the current probe finds no documents to evaluate for `mkqa_ita:long_answer`
 
