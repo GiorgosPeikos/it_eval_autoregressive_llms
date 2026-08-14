@@ -48,6 +48,7 @@ The intended runtime target for the full framework is:
 - `datasets==3.6.0`
 
 The dependency pins used for that path are listed in `constraints/lighteval-python310-313.txt`.
+GitHub Actions runs compilation and the network-free unit suite on Python 3.12 for every push and pull request.
 
 One upstream packaging caveat currently matters:
 

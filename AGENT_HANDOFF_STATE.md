@@ -553,3 +553,11 @@ State after step 24:
 
 State after step 25:
 - each new LightEval result preserves a dataset commit inventory alongside its raw task output.
+
+## Step 26. Add lightweight continuous integration
+
+- Added GitHub Actions coverage for compilation and unit tests on Python 3.12.
+- CI uses the repository's pinned LightEval installation sequence and does not run network benchmarks.
+
+State after step 26:
+- pushes and pull requests automatically check the fast deterministic test surface.
