@@ -561,3 +561,12 @@ State after step 25:
 
 State after step 26:
 - pushes and pull requests automatically check the fast deterministic test surface.
+
+## Step 27. Re-run the bounded end-to-end suite
+
+- Ran the quick suite from a fresh run directory after the normalization and reproducibility changes.
+- BLiMP-IT, Italian perplexity, controlled generation, aggregation, and report creation all passed.
+- Moved the quick per-document token cap into tokenizer truncation to avoid tokenizing oversized documents first.
+
+State after step 27:
+- the complete non-LightEval bounded path passes end to end in the validated Python 3.12 environment.

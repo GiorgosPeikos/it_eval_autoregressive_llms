@@ -75,9 +75,12 @@ def run(config_path: str):
             text = tokenizer.bos_token + text
         if config.perplexity.add_eos_token and tokenizer.eos_token:
             text = text + tokenizer.eos_token
-        input_ids = tokenizer(text, return_tensors="pt")["input_ids"]
+        tokenizer_kwargs = {"return_tensors": "pt"}
         if config.perplexity.max_tokens_per_document:
-            input_ids = input_ids[:, : config.perplexity.max_tokens_per_document]
+            tokenizer_kwargs.update(
+                {"truncation": True, "max_length": config.perplexity.max_tokens_per_document}
+            )
+        input_ids = tokenizer(text, **tokenizer_kwargs)["input_ids"]
 
         doc_nll = 0.0
         doc_tokens = 0
