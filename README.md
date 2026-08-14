@@ -22,7 +22,7 @@ Use the **Model Eval** badge above. Select a GPU, enter a Hugging Face model id 
 ### 2. Use it from another Python project
 
 ```bash
-python -m pip install "it-eval-framework @ git+https://github.com/GiorgosPeikos/it_eval_autoregressive_llms.git"
+python -m pip install it-eval-framework
 it-eval evaluate --model my-org/my-italian-model --preset quick --device auto
 ```
 
@@ -40,7 +40,7 @@ Clone the repository and use the pinned development installation described below
 
 For model revisions, local checkpoints, preset selection, LightEval installation, result interpretation, and archival guidance, see [Evaluate your Italian language model](docs/USER_GUIDE.md).
 
-The project is PyPI-ready but not yet published. Until the first tagged release, use the GitHub installation command above.
+Version `0.1.0` is published on [PyPI](https://pypi.org/project/it-eval-framework/). GitHub installation remains available when testing unreleased commits.
 
 ## Scope
 

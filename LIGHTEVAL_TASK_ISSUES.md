@@ -189,3 +189,4 @@ Interpretation:
 - 2026-08-14: added PyPI-ready package metadata and a tag release workflow; LightEval remains an explicitly managed optional runtime and task classifications are unchanged.
 - 2026-08-14: validated the external wheel and public quick-preset API end to end; LightEval task classifications are unchanged.
 - 2026-08-14: adopted Apache-2.0 package licensing for the release; LightEval task classifications are unchanged.
+- 2026-08-14: published `it-eval-framework==0.1.0` through PyPI trusted publishing; LightEval remains separately installed for the pinned task path and classifications are unchanged.

@@ -650,3 +650,12 @@ State after step 36:
 
 State after step 37:
 - the repository and distribution have an explicit release-compatible license.
+
+## Step 38. Publish v0.1.0 to PyPI
+
+- Created and pushed annotated tag `v0.1.0` from commit `21bb5ec`.
+- GitHub Actions build and trusted-publishing jobs both completed successfully.
+- Verified PyPI JSON metadata and downloaded the published wheel with `pip`.
+
+State after step 38:
+- `python -m pip install it-eval-framework` installs the public `0.1.0` release.
