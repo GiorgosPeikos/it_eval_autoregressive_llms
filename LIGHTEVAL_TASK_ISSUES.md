@@ -164,3 +164,7 @@ Interpretation:
 1. Keep `mkqa.long_answer` explicitly unsupported for the current bounded probe workflow unless a probe with actual Italian long-answer documents proves otherwise.
 2. Use `configs/lighteval_verified_windows.yaml` or the `verified_windows` suite as the supported bounded LightEval path on local Windows.
 3. Treat any future regressions in `mlmm_hellaswag.*`, `mlmm_arc_challenge.*`, or `squad_it.default` against the current wrapper as re-verification work, not as already-known unresolved blockers.
+
+## Framework stabilization after the task sweep
+
+- 2026-08-14: corrected overlapping-window perplexity accounting; this does not change LightEval task classifications.

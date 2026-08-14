@@ -474,3 +474,11 @@ State after step 15:
 - The previously unresolved HellaSwag, ARC, and SQuAD tasks are no longer open blockers in the current local Windows path.
 - The supported bounded LightEval path is now explicit and reproducible through `configs/lighteval_verified_windows.yaml`.
 - The only remaining intentionally excluded alias from the otherwise verified bounded subset is `mkqa.long_answer`.
+
+## Step 16. Correct strided perplexity accounting
+
+- Fixed overlapping-window perplexity so context tokens are masked and every target token contributes to NLL once.
+- Added a regression test covering two overlapping windows.
+
+State after step 16:
+- strided perplexity no longer double-counts overlap when `stride < sequence_length`.

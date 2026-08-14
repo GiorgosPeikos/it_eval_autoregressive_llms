@@ -80,10 +80,19 @@ def run(config_path: str):
 
         doc_nll = 0.0
         doc_tokens = 0
+        previous_end = 0
         for start, end in sliding_windows(input_ids.shape[1], config.perplexity.sequence_length, config.perplexity.stride):
-            stat = compute_window_nll(model, input_ids, start, end, device=config.model.device)
+            stat = compute_window_nll(
+                model,
+                input_ids,
+                start,
+                end,
+                device=config.model.device,
+                target_start=previous_end,
+            )
             doc_nll += stat.negative_log_likelihood
             doc_tokens += stat.token_count
+            previous_end = end
             if config.perplexity.preserve_document_boundaries and end == input_ids.shape[1]:
                 break
 

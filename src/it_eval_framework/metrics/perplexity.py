@@ -22,11 +22,22 @@ def sliding_windows(token_count: int, sequence_length: int, stride: int):
         start += stride
 
 
-def compute_window_nll(model, input_ids: torch.Tensor, start: int, end: int, device: str = "cpu") -> WindowStat:
+def compute_window_nll(
+    model,
+    input_ids: torch.Tensor,
+    start: int,
+    end: int,
+    device: str = "cpu",
+    target_start: int | None = None,
+) -> WindowStat:
     chunk = input_ids[:, start:end].to(device)
+    labels = chunk.clone()
+    if target_start is not None:
+        context_length = max(target_start - start, 0)
+        labels[:, :context_length] = -100
     with torch.no_grad():
-        outputs = model(input_ids=chunk, labels=chunk)
-    effective_tokens = max(chunk.shape[1] - 1, 0)
+        outputs = model(input_ids=chunk, labels=labels)
+    effective_tokens = int((labels[:, 1:] != -100).sum().item())
     nll = float(outputs.loss.item() * effective_tokens)
     return WindowStat(negative_log_likelihood=nll, token_count=effective_tokens)
 
