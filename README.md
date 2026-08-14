@@ -1,21 +1,126 @@
 # Italian Autoregressive LLM Evaluation Framework
 
-This repository provides a reproducible evaluation stack for Italian decoder-only Hugging Face language models. The framework is designed for base models, not instruction-tuned models, so it prioritizes continuation likelihood, conditional log-likelihood, perplexity, and controlled generation.
+This repository provides a reproducible evaluation framework for Italian decoder-only Hugging Face language models. It is designed for base models, not instruction-tuned or chat models, so it prioritizes continuation likelihood, conditional log-likelihood, perplexity, and controlled generation.
 
-## What is implemented
+## Scope
 
-- LightEval-backed Italian benchmark execution for verified `lighteval==0.13.0` task IDs.
-- BLiMP-IT minimal-pair evaluation by direct sentence likelihood comparison.
-- Perplexity evaluation for local files or Hugging Face datasets.
-- Controlled generation with configurable decoding profiles and diagnostics.
-- Stable run directories, environment capture, resumable step state, and machine-readable outputs.
-- Aggregation and checkpoint comparison utilities.
+The framework supports:
+
+- LightEval-backed Italian benchmark execution
+- BLiMP-IT minimal-pair evaluation by direct sentence likelihood comparison
+- Perplexity evaluation on local files or Hugging Face datasets
+- Controlled generation with configurable decoding profiles and diagnostics
+- Stable run directories, resumable step state, environment capture, and machine-readable outputs
+- Aggregation and checkpoint comparison utilities
+
+## Repository structure
+
+```text
+configs/
+constraints/
+notebooks/
+src/it_eval_framework/
+tests/
+README.md
+SMOKE_TEST_RESULTS.md
+```
+
+Core logic lives in `src/it_eval_framework`. The notebooks are intentionally thin launchers, not a second implementation.
+
+## Supported runtime target
+
+The intended runtime target for the full framework is:
+
+- Python `3.10` to `3.13`
+- `lighteval[multilingual]==0.13.0`
+- `datasets==3.6.0`
+
+The dependency pins used for that path are listed in `constraints/lighteval-python310-313.txt`.
+
+## Installation
+
+Create a fresh virtual environment and install the pinned stack:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install -r constraints/lighteval-python310-313.txt
+python -m pip install -e .[dev]
+```
+
+On Windows PowerShell:
+
+```powershell
+py -3.12 -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install -r constraints/lighteval-python310-313.txt
+python -m pip install -e .[dev]
+```
+
+## Quick start
+
+Run tests first:
+
+```bash
+python -m pytest
+```
+
+Run the compact evaluation suite:
+
+```bash
+python -m it_eval_framework.runners.run_all --config configs/italian_base_quick.yaml
+```
+
+Run the full suite:
+
+```bash
+python -m it_eval_framework.runners.run_all --config configs/italian_base_full.yaml
+```
+
+Run individual stages:
+
+```bash
+python -m it_eval_framework.runners.run_lighteval --config configs/italian_base_full.yaml
+python -m it_eval_framework.runners.run_blimp_it --config configs/italian_base_full.yaml
+python -m it_eval_framework.runners.run_perplexity --config configs/italian_base_full.yaml
+python -m it_eval_framework.runners.run_generation --config configs/italian_base_full.yaml
+```
+
+## Colab notebooks
+
+The repository includes two Colab-oriented notebooks in `notebooks/`:
+
+- `colab_quickstart.ipynb`
+- `colab_model_eval_template.ipynb`
+
+Use them for:
+
+- quick smoke tests on a small public causal LM
+- early validation of a Hugging Face repo ID
+- interactive setup before moving to a normal YAML config and CLI run
+
+The recommended workflow is:
+
+1. validate the environment in Colab with the quick notebook
+2. run the quick config on a small model
+3. move to a normal config file for repeated evaluations
+
+## User entry point
+
+The user-facing model entry is always one of:
+
+- a local Hugging Face checkpoint path in `model.source`
+- a Hugging Face repo ID in `model.source`
+
+Optional tokenizer overrides are supported with `model.tokenizer_source`.
 
 ## Verified LightEval version and Italian task IDs
 
-The framework is pinned to `lighteval==0.13.0`. The Italian task registry was verified locally on **August 14, 2026** from the installed multilingual registry, not inferred from docs.
+The framework is pinned to `lighteval==0.13.0`. The Italian task registry was verified against the installed multilingual registry on **2026-08-14**.
 
-Key verified IDs:
+Key verified IDs include:
 
 - `mlmm_hellaswag_ita_cf`, `mlmm_hellaswag_ita_mcf`, `mlmm_hellaswag_ita_hybrid`
 - `xcopa_ita_cf`, `xcopa_ita_mcf`, `xcopa_ita_hybrid`
@@ -30,57 +135,6 @@ Key verified IDs:
 - `squad_ita`
 - `mkqa_ita:entity`, `mkqa_ita:short_phrase`, `mkqa_ita:number`, `mkqa_ita:date`, `mkqa_ita:binary`, `mkqa_ita:long_answer`, `mkqa_ita:number_with_unit`
 - `mintaka_ita`
-
-## Installation
-
-On Windows, the original workspace venv hit a `torch` path-length failure. For this framework, use Python `3.10` to `3.13`. Python `3.14` is not compatible with the legacy `datasets` path still required by several LightEval Italian benchmarks.
-
-```powershell
-py -3.12 -m venv C:\v\iteval
-C:\v\iteval\Scripts\python.exe -m pip install --upgrade pip setuptools wheel
-C:\v\iteval\Scripts\python.exe -m pip install -e .[dev]
-```
-
-## Quick start
-
-Quick smoke-oriented command:
-
-```powershell
-C:\v\iteval\Scripts\python.exe -m it_eval_framework.runners.run_all --config configs\italian_base_quick.yaml
-```
-
-## Colab notebooks
-
-Two Colab-oriented notebooks are included in [notebooks](C:/Users/User/PycharmProjects/PythonProject/it_eval_autoregressive_llms/notebooks):
-
-- [colab_quickstart.ipynb](C:/Users/User/PycharmProjects/PythonProject/it_eval_autoregressive_llms/notebooks/colab_quickstart.ipynb): clone, install, write a temporary quick config, run tests, and launch the quick suite
-- [colab_model_eval_template.ipynb](C:/Users/User/PycharmProjects/PythonProject/it_eval_autoregressive_llms/notebooks/colab_model_eval_template.ipynb): a thinner launcher for evaluating a real HF repo id or checkpoint path
-
-These notebooks are intentionally thin wrappers. The package and CLI remain the source of truth.
-
-Complete evaluation command:
-
-```powershell
-python -m it_eval_framework.runners.run_all --config configs\italian_base_full.yaml
-```
-
-Run individual stages:
-
-```powershell
-python -m it_eval_framework.runners.run_lighteval --config configs\italian_base_full.yaml
-python -m it_eval_framework.runners.run_blimp_it --config configs\italian_base_full.yaml
-python -m it_eval_framework.runners.run_perplexity --config configs\italian_base_full.yaml
-python -m it_eval_framework.runners.run_generation --config configs\italian_base_full.yaml
-```
-
-## User entry point
-
-The user-facing model entry is always one of:
-
-- a local Hugging Face checkpoint path in `model.source`
-- a Hugging Face repo ID in `model.source`
-
-Optional tokenizer overrides are supported with `model.tokenizer_source`.
 
 ## Output layout
 
@@ -110,45 +164,51 @@ evaluation_results/
 | MLMM HellaSwag IT | LightEval / `okapi_hellaswag` | cf, mcf, hybrid | task metrics from LightEval | verified IDs in registry |
 | XCOPA IT | LightEval / `cambridgeltl/xcopa` | cf, mcf, hybrid | task metrics from LightEval | verified IDs in registry |
 | Global MMLU IT | LightEval / `Global-MMLU` | mcf | task metrics from LightEval | subject-expanded tasks |
-| MLMM ARC IT | LightEval / `okapi_arc_challenge` | cf, mcf, hybrid | task metrics from LightEval | task prefix is `mlmm_arc_ita_*`, not `mlmm_arc_challenge_*` |
+| MLMM ARC IT | LightEval / `okapi_arc_challenge` | cf, mcf, hybrid | task metrics from LightEval | task prefix is `mlmm_arc_ita_*` |
 | SQuAD-it | LightEval / `crux82/squad_it` | generative QA | task metrics from LightEval | task ID is `squad_ita` |
 | MKQA IT | LightEval / `apple/mkqa` | answer-type specific QA | task metrics from LightEval | split by answer class |
 | TruthfulQA IT | LightEval / `okapi_truthfulqa` | cf, mcf, hybrid | task metrics from LightEval | mc1/mc2 variants kept separate |
 | Held-out perplexity | local file or HF dataset | sliding-window NLL | token perplexity | contamination warning required |
-| Controlled generation | local prompts | greedy / sampled decoding | diagnostics + human review | not a substitute for human eval |
+| Controlled generation | local prompts | greedy / sampled decoding | diagnostics + human review | not a substitute for human evaluation |
 
 ## ItaCoLA status
 
-ItaCoLA is not implemented as a default base-model benchmark. The standard task is supervised acceptability classification, and this framework does not present an ad hoc zero-shot prompt as equivalent. A downstream supervised module can be added separately.
+ItaCoLA is not implemented as a default base-model benchmark. The standard task is supervised acceptability classification, and this framework does not present an ad hoc zero-shot prompt as equivalent. A separate downstream supervised module can be added later.
 
-## Failure handling and limitations
+## Windows notes
 
-- LightEval multilingual tasks require `lighteval[multilingual]`.
-- On this Windows environment, `language_data` was also required for full multilingual registry loading.
-- Some datasets may be gated or temporarily unavailable; the runners currently surface those failures directly.
-- The current LightEval wrapper preserves raw results and verified IDs, but it does not yet normalize LightEval metrics into a richer per-task schema.
-- `global_mmlu` and `mlmm_mmlu` expand to subject-level tasks; aggregation remains task-level.
+Windows is supported, but a few practical issues should be expected:
+
+- long path handling can affect large dependency trees such as `torch`
+- Hugging Face caching may fall back from symlinks to regular copies
+- PowerShell and Windows path separators need slightly different command examples
+
+These are operational issues, not framework design constraints.
+
+## Current limitations
+
+- LightEval multilingual tasks require the `multilingual` extra
+- some datasets may be gated, rate-limited, or temporarily unavailable
+- the current LightEval wrapper preserves raw results and verified task IDs, but does not yet normalize every LightEval metric into a richer per-task schema
+- `global_mmlu` and `mlmm_mmlu` expand to subject-level tasks, so aggregation is still task-level
 
 ## Adding a new Italian task
 
-1. Verify the exact task name from the installed LightEval registry for the pinned version.
-2. Add the alias mapping in `src/it_eval_framework/task_registry.py`.
-3. Add the alias to the desired suite in `DEFAULT_LIGHTEVAL_SUITES`.
-4. Update the benchmark table in this README.
-5. Add a smoke config entry with `max_samples` before enabling it broadly.
+1. Verify the exact task name from the installed LightEval registry for the pinned version
+2. Add the alias mapping in `src/it_eval_framework/task_registry.py`
+3. Add the alias to the desired suite in `DEFAULT_LIGHTEVAL_SUITES`
+4. Update the benchmark table in this README
+5. Add a smoke config entry with `max_samples` before enabling it broadly
 
 ## Smoke-test status
 
-Smoke execution in this workspace was only partial because the machine exposes Python `3.14` and `3.9`, but the full stack needs Python `3.10` to `3.13`. The concrete failures observed here were:
-
-- `datasets 5.0.1` rejects dataset scripts used by some LightEval Italian tasks.
-- `datasets 3.6.0` works better for those tasks but fails on Python `3.14` because of a `dill` / `pickle` incompatibility.
-- Python `3.9` cannot satisfy the newer `huggingface_hub` and LightEval dependency floor.
+See `SMOKE_TEST_RESULTS.md` for the latest recorded smoke execution notes. That file documents observed results in a specific environment; it is not a statement that every environment will fail in the same way.
 
 ## Recommended next steps
 
-1. Run the quick config and inspect the actual LightEval output file structure.
-2. Tighten the LightEval result parser into a stable per-task schema.
-3. Add dataset metadata capture: split, revision, license, and auth requirements per benchmark.
-4. Add tokenizer/model compatibility validation before execution.
-5. Add explicit comparison warnings when prompt/task settings differ across runs.
+1. run the quick suite in Colab or another Python `3.10` to `3.13` environment
+2. inspect the actual LightEval output structure from a successful run
+3. tighten the LightEval result parser into a normalized per-task schema
+4. add dataset metadata capture: split, revision, license, and auth requirements
+5. add tokenizer and vocabulary compatibility checks before execution
+6. add explicit comparison warnings when task or prompt settings differ across runs
