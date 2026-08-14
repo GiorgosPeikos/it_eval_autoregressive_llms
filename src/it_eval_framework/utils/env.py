@@ -6,9 +6,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import datasets
-import lighteval
 import torch
 import transformers
+
+try:
+    import lighteval
+except ImportError:  # pragma: no cover - optional dependency in non-LightEval runs
+    lighteval = None
 
 
 def utc_now() -> str:
@@ -35,7 +39,7 @@ def environment_snapshot(workdir: str | Path) -> dict:
         "platform": platform.platform(),
         "python": platform.python_version(),
         "git_commit": git_commit(workdir),
-        "lighteval_version": lighteval.__version__,
+        "lighteval_version": lighteval.__version__ if lighteval is not None else None,
         "transformers_version": transformers.__version__,
         "torch_version": torch.__version__,
         "datasets_version": datasets.__version__,

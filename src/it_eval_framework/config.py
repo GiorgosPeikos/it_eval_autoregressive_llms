@@ -52,7 +52,7 @@ class BliMPITConfig(BaseModel):
     enabled: bool = True
     dataset_repo: str = "NeTSlab/BLiMP-IT"
     dataset_subset: str | None = None
-    split: str = "train"
+    split: str = "test"
     max_samples: int | None = None
     phenomenon_field: str = "field"
     good_field: str = "sentence_good"
