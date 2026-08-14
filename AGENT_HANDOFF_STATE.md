@@ -482,3 +482,11 @@ State after step 15:
 
 State after step 16:
 - strided perplexity no longer double-counts overlap when `stride < sequence_length`.
+
+## Step 17. Correct normalized checkpoint comparison
+
+- Checkpoint summaries now join on component, task id, few-shot setting, and metric.
+- Duplicate identities fail explicitly instead of creating many-to-many rows.
+
+State after step 17:
+- normalized LightEval comparisons no longer produce Cartesian task matches.
