@@ -1,4 +1,4 @@
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 from lighteval.models.model_output import ModelResponse
 
@@ -16,12 +16,15 @@ def test_sanitize_filename_component_replaces_windows_invalid_chars():
 
 def test_to_windows_extended_path_returns_absolute_path():
     value = _to_windows_extended_path(Path("configs/italian_base_quick.yaml"))
-    assert value.endswith("configs\\italian_base_quick.yaml")
+    assert Path(value).is_absolute()
+    assert Path(value).parts[-2:] == ("configs", "italian_base_quick.yaml")
 
 
 def test_sanitize_windows_cache_path_preserves_drive_anchor():
     value = _sanitize_windows_cache_path(r"C:\Users\User\.cache\huggingface\lighteval\xcopa_ita_cf|0")
-    assert str(value) == r"C:\Users\User\.cache\huggingface\lighteval\xcopa_ita_cf__0"
+    assert PureWindowsPath(value) == PureWindowsPath(
+        r"C:\Users\User\.cache\huggingface\lighteval\xcopa_ita_cf__0"
+    )
 
 
 def test_merge_unconditioned_response_appends_logprobs():

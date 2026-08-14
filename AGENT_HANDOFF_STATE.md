@@ -577,3 +577,11 @@ State after step 27:
 
 State after step 28:
 - the CI workflow declares every tool it invokes.
+
+## Step 29. Fix cross-platform CI assertions
+
+- Made Windows drive-path detection independent of the host operating system.
+- Changed Windows compatibility tests to compare path semantics instead of host-specific separators.
+
+State after step 29:
+- the same unit suite is valid on both Windows development hosts and Linux CI runners.

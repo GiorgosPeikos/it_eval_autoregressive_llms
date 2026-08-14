@@ -180,3 +180,4 @@ Interpretation:
 - 2026-08-14: added network-free Python 3.12 CI for compilation and unit tests; task classifications are unchanged.
 - 2026-08-14: re-ran the complete bounded non-LightEval suite successfully after the reporting changes; task classifications are unchanged.
 - 2026-08-14: finalized the CI test dependency installation; task classifications are unchanged.
+- 2026-08-14: fixed Linux CI assertions for Windows path compatibility helpers; task classifications are unchanged.

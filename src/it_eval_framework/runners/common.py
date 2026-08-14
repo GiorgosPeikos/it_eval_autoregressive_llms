@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 from it_eval_framework.config import EvaluationConfig
 from it_eval_framework.run_layout import build_run_directory
@@ -14,7 +14,11 @@ from it_eval_framework.utils.run_state import RunState
 def reproducibility_issues(config: EvaluationConfig) -> list[str]:
     issues = []
     source = config.model.source
-    looks_local = Path(source).exists() or Path(source).drive != "" or source.startswith(("./", "../", "/"))
+    looks_local = (
+        Path(source).exists()
+        or bool(PureWindowsPath(source).drive)
+        or source.startswith(("./", "../", "/"))
+    )
     if looks_local and not config.model.artifact_sha256:
         issues.append("Local model source has no model.artifact_sha256 content digest.")
     if not looks_local and not config.model.revision:
