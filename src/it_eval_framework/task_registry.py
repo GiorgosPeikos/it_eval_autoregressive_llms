@@ -77,7 +77,6 @@ DEFAULT_LIGHTEVAL_SUITES = {
         "mlmm_hellaswag.cf",
         "xcopa.cf",
         "global_mmlu.mcf",
-        "mlmm_arc_challenge.cf",
         "squad_it.default",
         "mkqa.entity",
         "mlmm_truthfulqa.cf_mc1",

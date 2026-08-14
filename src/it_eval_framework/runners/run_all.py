@@ -15,17 +15,28 @@ from it_eval_framework.run_layout import build_run_directory
 def run(config_path: str) -> Path:
     config = load_config(config_path)
     run_dir = build_run_directory(config)
+    print(f"[run_all] Run directory: {run_dir}", flush=True)
     if config.lighteval.enabled:
+        print("[run_all] Starting LightEval", flush=True)
         run_lighteval(config_path)
+        print("[run_all] Finished LightEval", flush=True)
     if config.blimp_it.enabled:
+        print("[run_all] Starting BLiMP-IT", flush=True)
         run_blimp_it(config_path)
+        print("[run_all] Finished BLiMP-IT", flush=True)
     if config.perplexity and config.perplexity.enabled:
+        print("[run_all] Starting perplexity", flush=True)
         run_perplexity(config_path)
+        print("[run_all] Finished perplexity", flush=True)
     if config.generation.enabled:
+        print("[run_all] Starting generation", flush=True)
         run_generation(config_path)
+        print("[run_all] Finished generation", flush=True)
+    print("[run_all] Aggregating results", flush=True)
     summary = aggregate(run_dir)
     summary.to_csv(run_dir / "summary.csv", index=False)
     (run_dir / "report.md").write_text(summary.to_markdown(index=False), encoding="utf-8")
+    print("[run_all] Wrote summary.csv and report.md", flush=True)
     return run_dir
 
 

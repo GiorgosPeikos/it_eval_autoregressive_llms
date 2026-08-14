@@ -66,12 +66,32 @@ def run(config_path: str) -> Path:
 
     env = os.environ.copy()
     env.setdefault("HF_DATASETS_TRUST_REMOTE_CODE", "1")
-    completed = subprocess.run(command, check=False, text=True, capture_output=True, env=env)
-    (run_dir / "lighteval_stdout.log").write_text(completed.stdout, encoding="utf-8")
-    (run_dir / "lighteval_stderr.log").write_text(completed.stderr, encoding="utf-8")
-    if completed.returncode != 0:
+    env.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
+    print(f"[lighteval] Running tasks: {', '.join(task_names)}", flush=True)
+    print(f"[lighteval] Log file: {run_dir / 'lighteval_stdout.log'}", flush=True)
+    output_lines: list[str] = []
+    with subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        env=env,
+        bufsize=1,
+    ) as process:
+        assert process.stdout is not None
+        for line in process.stdout:
+            print(line, end="")
+            output_lines.append(line)
+        completed_returncode = process.wait()
+    combined_output = "".join(output_lines)
+    (run_dir / "lighteval_stdout.log").write_text(combined_output, encoding="utf-8")
+    (run_dir / "lighteval_stderr.log").write_text(
+        "stderr was merged into stdout for live progress visibility.\n",
+        encoding="utf-8",
+    )
+    if completed_returncode != 0:
         raise RuntimeError(
-            f"LightEval failed with exit code {completed.returncode}. "
+            f"LightEval failed with exit code {completed_returncode}. "
             f"See {run_dir / 'lighteval_stdout.log'} and {run_dir / 'lighteval_stderr.log'}."
         )
 
