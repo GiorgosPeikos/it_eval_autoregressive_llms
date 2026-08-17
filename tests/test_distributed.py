@@ -7,6 +7,7 @@ import sys
 import torch
 
 from it_eval_framework.config import EvaluationConfig, RuntimeConfig
+from it_eval_framework.runners import launch
 from it_eval_framework.runners.launch import process_count
 from it_eval_framework.utils.distributed import DistributedContext, generation_seed
 
@@ -61,6 +62,25 @@ def test_num_processes_must_be_positive():
 
 def test_explicit_process_count_is_preserved():
     assert process_count(2) == 2
+
+
+def test_launcher_uses_unbuffered_child_output(monkeypatch):
+    config = EvaluationConfig.model_validate(minimal_payload())
+    captured = {}
+
+    monkeypatch.setattr(launch, "load_config", lambda _: config)
+    monkeypatch.setattr(launch.torch.cuda, "device_count", lambda: 0)
+
+    def fake_run(command, **kwargs):
+        captured["command"] = command
+        captured["environment"] = kwargs["env"]
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr(launch.subprocess, "run", fake_run)
+
+    assert launch.run("config.yaml") == 0
+    assert captured["command"][1] == "-u"
+    assert captured["environment"]["PYTHONUNBUFFERED"] == "1"
 
 
 @pytest.mark.skipif(

@@ -47,12 +47,25 @@ def run(config_path: str):
 
     rows = []
     job_index = 0
+    total_jobs = len(prompts) * len(config.generation.profiles)
+    if context.is_main:
+        print(
+            f"[generation] Starting {total_jobs} prompt/profile jobs; "
+            f"prompts={len(prompts)}; profiles={len(config.generation.profiles)}",
+            flush=True,
+        )
     for prompt in prompts:
         for profile in config.generation.profiles:
             current_job_index = job_index
             job_index += 1
             if not context.owns(current_job_index):
                 continue
+            if context.is_main:
+                print(
+                    f"[generation] Job {current_job_index + 1}/{total_jobs}: "
+                    f"prompt={prompt.prompt_id}; profile={profile.name}",
+                    flush=True,
+                )
             encoded = prepare_generation_inputs(tokenizer, prompt.prompt_text, input_device)
             prompt_token_count = encoded["input_ids"].shape[1]
             effective_seed = generation_seed(config.generation.seed, prompt.prompt_id, profile.name)
@@ -74,6 +87,12 @@ def run(config_path: str):
             full_text = tokenizer.decode(generated[0], skip_special_tokens=True)
             completion_text = tokenizer.decode(generated[0][prompt_token_count:], skip_special_tokens=True)
             diagnostics = summarize_generation(completion_text)
+            if context.is_main:
+                print(
+                    f"[generation] Finished job {current_job_index + 1}/{total_jobs} "
+                    f"in {latency:.2f}s; new_tokens={int(generated.shape[1] - prompt_token_count)}",
+                    flush=True,
+                )
             rows.append(
                 {
                     "model_identifier": config.model.source,

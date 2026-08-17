@@ -103,6 +103,8 @@ def test_notebooks_launch_with_the_running_kernel_interpreter():
 
         assert "sys.executable" in source
         assert "it_eval_framework.runners.launch" in source
+        assert "run_live" in source
+        assert '"-u"' in source
         assert "!it-eval-launch" not in source
 
 

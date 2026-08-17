@@ -107,6 +107,11 @@ def run(config_path: str):
             total += 1
             grouped[phenomenon]["correct"] += int(is_correct)
             grouped[phenomenon]["total"] += 1
+            if context.is_main and (total <= 3 or total % 10 == 0):
+                print(
+                    f"[blimp_it] Progress: pairs_scored={total}; current_subset={subset}",
+                    flush=True,
+                )
             rows.append(
                 {
                     "subset": subset,

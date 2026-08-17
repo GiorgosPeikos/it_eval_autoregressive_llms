@@ -79,6 +79,9 @@ def run(config_path: str):
     total_nll = 0.0
     total_tokens = 0
     documents_scored = 0
+    if context.is_main:
+        document_target = config.perplexity.max_documents or num_rows_before_limit or "all streamed"
+        print(f"[perplexity] Scoring documents; target={document_target}", flush=True)
 
     for index, row in enumerate(dataset):
         if not context.owns(index):
@@ -119,6 +122,12 @@ def run(config_path: str):
         total_tokens += doc_tokens
         if doc_tokens:
             documents_scored += 1
+            if context.is_main and (documents_scored <= 3 or documents_scored % 10 == 0):
+                print(
+                    f"[perplexity] Progress: documents_scored={documents_scored}; "
+                    f"target_tokens_scored={total_tokens}",
+                    flush=True,
+                )
         if config.perplexity.per_document_stats:
             per_document.append(
                 {

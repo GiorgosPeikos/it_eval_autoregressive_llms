@@ -109,6 +109,7 @@ def run(config_path: str) -> Path:
         env.pop(name, None)
     env.setdefault("HF_DATASETS_TRUST_REMOTE_CODE", "1")
     env.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
+    env["PYTHONUNBUFFERED"] = "1"
     apply_windows_hf_cache_overrides(env)
     print(f"[lighteval] Running {len(task_names)} task(s):", flush=True)
     for index, (alias, task_name) in enumerate(zip(config.lighteval.task_aliases, task_names), start=1):
@@ -126,7 +127,7 @@ def run(config_path: str) -> Path:
     ) as process:
         assert process.stdout is not None
         for line in process.stdout:
-            print(line, end="")
+            print(line, end="", flush=True)
             output_lines.append(line)
         completed_returncode = process.wait()
     combined_output = "".join(output_lines)

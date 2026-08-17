@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 
@@ -31,10 +32,11 @@ def run(config_path: str, num_processes: int | None = None) -> int:
         )
 
     if count == 1:
-        command = [sys.executable, "-m", "it_eval_framework.runners.run_all", "--config", config_path]
+        command = [sys.executable, "-u", "-m", "it_eval_framework.runners.run_all", "--config", config_path]
     else:
         command = [
             sys.executable,
+            "-u",
             "-m",
             "torch.distributed.run",
             "--standalone",
@@ -46,7 +48,9 @@ def run(config_path: str, num_processes: int | None = None) -> int:
             config_path,
         ]
     print(f"[launch] Parallelism: {mode}; processes: {count}", flush=True)
-    return subprocess.run(command, check=False).returncode
+    environment = os.environ.copy()
+    environment["PYTHONUNBUFFERED"] = "1"
+    return subprocess.run(command, check=False, env=environment).returncode
 
 
 def main() -> None:
