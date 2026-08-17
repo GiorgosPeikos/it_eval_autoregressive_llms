@@ -58,7 +58,7 @@ The `it-eval-framework` PyPI project and trusted publisher are configured. For l
 2. commit and push the release state
 3. push the matching version tag; the workflow builds, validates, and publishes the distributions
 
-The first trusted-publishing release, `v0.1.0`, completed successfully on 2026-08-14. Version `0.1.1` followed as a documentation-only patch. Version `0.1.2` adds the complete evaluation walkthroughs, hardened LightEval execution, automatic revision handling, bounded streaming perplexity, adaptive multi-GPU evaluation, and explained result reporting.
+The first trusted-publishing release, `v0.1.0`, completed successfully on 2026-08-14. Version `0.1.1` followed as a documentation-only patch. Version `0.1.2` added complete evaluation walkthroughs, hardened LightEval execution, automatic revision handling, bounded streaming perplexity, adaptive multi-GPU evaluation, and explained result reporting. Version `0.1.3` adds live notebook progress, stage heartbeats, clearer suite guidance, and the polished README and notebook experience.
 
 Then evaluate a Hub model:
 
@@ -148,7 +148,7 @@ The pinned Italian LightEval path requires a resolver-managed installation becau
 python -m pip install --upgrade "pip<27" "setuptools<82" wheel
 python -m pip install "lighteval[multilingual]==0.13.0" --no-deps
 python -m pip install -r https://raw.githubusercontent.com/GiorgosPeikos/it_eval_autoregressive_llms/main/constraints/lighteval-python310-313.txt
-python -m pip install "it-eval-framework==0.1.2" --no-deps
+python -m pip install "it-eval-framework==0.1.3" --no-deps
 ```
 
 Use Python 3.10–3.13. Authenticate with `hf auth login` before a large task sweep.

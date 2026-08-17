@@ -69,7 +69,7 @@ print(run_dir)
 | [Task reference](docs/TASK_REFERENCE.md) | Benchmark purposes, aliases, formulations, and research-reporting notes |
 | [Multi-GPU guide](docs/MULTI_GPU_README.md) | Replicated inference, large-model sharding, launch commands, and schedulers |
 
-The current stable release is [`0.1.2`](https://pypi.org/project/it-eval-framework/0.1.2/). GitHub installation remains available for unreleased commits.
+The current stable release is [`0.1.3`](https://pypi.org/project/it-eval-framework/0.1.3/). GitHub installation remains available for unreleased commits.
 
 ## Evaluation coverage
 

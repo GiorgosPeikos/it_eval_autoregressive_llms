@@ -1,6 +1,5 @@
-__all__ = ["__version__"]
-
-__version__ = "0.1.0"
 from it_eval_framework.api import evaluate
 
-__all__ = ["evaluate"]
+__version__ = "0.1.3"
+
+__all__ = ["evaluate", "__version__"]
