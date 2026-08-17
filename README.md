@@ -1,56 +1,77 @@
-# Italian Autoregressive LLM Evaluation Framework
+<h1 align="center">Italian Autoregressive LLM Evaluation Framework</h1>
+
+<p align="center"><strong>Reproducible, Italian-first evaluation for decoder-only Hugging Face language models.</strong></p>
 
 <p align="center">
-  <a href="https://colab.research.google.com/github/GiorgosPeikos/it_eval_autoregressive_llms/blob/main/notebooks/colab_quickstart.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab - Quickstart"/>
-  </a>
-  <a href="https://colab.research.google.com/github/GiorgosPeikos/it_eval_autoregressive_llms/blob/main/notebooks/colab_model_eval_template.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab - Model Eval"/>
-  </a>
+  <a href="https://pypi.org/project/it-eval-framework/"><img alt="PyPI" src="https://img.shields.io/pypi/v/it-eval-framework?label=PyPI&color=3775A9"></a>
+  <a href="https://pypi.org/project/it-eval-framework/"><img alt="Python versions" src="https://img.shields.io/pypi/pyversions/it-eval-framework?logo=python&logoColor=white"></a>
+  <a href="https://github.com/GiorgosPeikos/it_eval_autoregressive_llms/actions/workflows/tests.yml"><img alt="Tests" src="https://github.com/GiorgosPeikos/it_eval_autoregressive_llms/actions/workflows/tests.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/GiorgosPeikos/it_eval_autoregressive_llms"></a>
+  <a href="docs/LIGHTEVAL_README.md"><img alt="LightEval 0.13.0" src="https://img.shields.io/badge/LightEval-0.13.0-FFD21E"></a>
 </p>
 
-This repository provides a reproducible evaluation framework for Italian decoder-only Hugging Face language models. It is designed for base models, not instruction-tuned or chat models, so it prioritizes continuation likelihood, conditional log-likelihood, perplexity, and controlled generation.
+<p align="center">
+  <a href="https://colab.research.google.com/github/GiorgosPeikos/it_eval_autoregressive_llms/blob/main/notebooks/colab_quickstart.ipynb"><img alt="Colab Quickstart" src="https://img.shields.io/badge/Colab-Quickstart-F9AB00?logo=googlecolab&logoColor=white"></a>
+  <a href="https://colab.research.google.com/github/GiorgosPeikos/it_eval_autoregressive_llms/blob/main/notebooks/colab_model_eval_template.ipynb"><img alt="Colab Full Model Evaluation" src="https://img.shields.io/badge/Colab-Full_Model_Evaluation-F9AB00?logo=googlecolab&logoColor=white"></a>
+</p>
 
-Licensed under the [Apache License 2.0](LICENSE).
+<p align="center">
+  <a href="#getting-started">Getting started</a> ·
+  <a href="#evaluation-coverage">Evaluation coverage</a> ·
+  <a href="docs/RESULTS_README.md">Results</a> ·
+  <a href="docs/TASK_REFERENCE.md">Task reference</a> ·
+  <a href="docs/MULTI_GPU_README.md">Multi-GPU</a>
+</p>
 
-## Choose how to start
+> [!NOTE]
+> This framework targets **base autoregressive models**, not instruction-tuned or chat models. It therefore emphasizes continuation likelihood, conditional log-likelihood, held-out perplexity, grammatical minimal pairs, and controlled generation.
 
-### 1. Evaluate a model in Colab
+## At a glance
 
-Use the **Model Eval** badge above. Select a GPU, enter a Hugging Face model id or Google Drive checkpoint path, run the bounded evaluation, and download the complete result ZIP.
+| | Capability | What it provides |
+|---:|---|---|
+| 1 | **Italian benchmarks** | 39 currently evaluable LightEval task variants with explicit suites and immutable task resolution |
+| 2 | **Grammatical preference** | BLiMP-IT minimal-pair likelihood scoring overall and by linguistic phenomenon |
+| 3 | **Predictive fit** | Streaming held-out perplexity on local files or Hugging Face datasets |
+| 4 | **Behavior inspection** | Controlled generation profiles, text diagnostics, and human-review outputs |
+| 5 | **Reproducibility** | Resumable run directories, immutable revisions, environment capture, normalized metrics, and raw details |
+| 6 | **Scale** | Adaptive single-GPU, replicated multi-GPU, and model-sharded execution |
 
-### 2. Use it from another Python project
+## Getting started
+
+| Goal | Recommended path | Start here |
+|---|---|---|
+| Validate the framework quickly | Colab Quickstart | [Open the bounded quickstart](https://colab.research.google.com/github/GiorgosPeikos/it_eval_autoregressive_llms/blob/main/notebooks/colab_quickstart.ipynb) |
+| Evaluate a real model interactively | Full Model Evaluation Colab | [Open the explained model workflow](https://colab.research.google.com/github/GiorgosPeikos/it_eval_autoregressive_llms/blob/main/notebooks/colab_model_eval_template.ipynb) |
+| Use the library in another project | PyPI package | `python -m pip install it-eval-framework` |
+| Run a repeatable local/server evaluation | YAML + CLI | Copy [`configs/local_model_example.yaml`](configs/local_model_example.yaml) |
+| Contribute to the framework | Source installation | Follow [Installation](#installation) |
 
 ```bash
 python -m pip install it-eval-framework
 it-eval evaluate --model my-org/my-italian-model --preset quick --device auto
 ```
 
-Or call it from Python:
-
 ```python
 from it_eval_framework import evaluate
 
 run_dir = evaluate(model="my-org/my-italian-model", preset="quick", device="auto")
+print(run_dir)
 ```
 
-### 3. Develop the framework
+## Documentation
 
-Clone the repository and use the pinned development installation described below.
+| Guide | Use it for |
+|---|---|
+| [User guide](docs/USER_GUIDE.md) | Model revisions, local checkpoints, presets, archival runs, and end-to-end usage |
+| [LightEval guide](docs/LIGHTEVAL_README.md) | Pinned installation, suite selection, bounded-to-full progression, and troubleshooting |
+| [Results guide](docs/RESULTS_README.md) | Metric formulas, accuracy/perplexity interpretation, result files, and comparison rules |
+| [Task reference](docs/TASK_REFERENCE.md) | Benchmark purposes, aliases, formulations, and research-reporting notes |
+| [Multi-GPU guide](docs/MULTI_GPU_README.md) | Replicated inference, large-model sharding, launch commands, and schedulers |
 
-For model revisions, local checkpoints, preset selection, LightEval installation, result interpretation, and archival guidance, see [Evaluate your Italian language model](docs/USER_GUIDE.md).
+The current stable release is [`0.1.2`](https://pypi.org/project/it-eval-framework/0.1.2/). GitHub installation remains available for unreleased commits.
 
-For the pinned LightEval installation, Colab settings, suite selection, bounded-to-full progression, and troubleshooting, see [Running LightEval reliably](docs/LIGHTEVAL_README.md).
-
-For metric formulas, the meaning of accuracy/perplexity/generation diagnostics, result files, and comparison rules, see [Understanding evaluation results](docs/RESULTS_README.md).
-
-For replicated inference across several GPUs, large-model sharding, launch commands, and scheduler guidance, see [Multi-GPU evaluation](docs/MULTI_GPU_README.md).
-
-Version `0.1.2` is published on [PyPI](https://pypi.org/project/it-eval-framework/). GitHub installation remains available when testing unreleased commits.
-
-## Scope
-
-The framework supports:
+## Evaluation coverage
 
 - LightEval-backed Italian benchmark execution
 - BLiMP-IT minimal-pair evaluation by direct sentence likelihood comparison
@@ -59,10 +80,10 @@ The framework supports:
 - Stable run directories, resumable step state, environment capture, and machine-readable outputs
 - Replicated multi-GPU inference for BLiMP-IT, perplexity, and controlled generation
 - Aggregation and checkpoint comparison utilities
-- A supported Python entry point: `from it_eval_framework import evaluate`
-- A single user-facing command: `it-eval evaluate --config model.yaml`
-- Package-owned presets: `quick`, `perplexity`, `verified_windows`, and explicitly unbounded `full`
-- A shared normalized metric-row schema across LightEval, BLiMP-IT, perplexity, and generation summaries
+- Python API: `from it_eval_framework import evaluate`
+- CLI: `it-eval evaluate --config model.yaml`
+- Package presets: `quick`, `perplexity`, `verified_windows`, and explicitly unbounded `full`
+- Shared normalized metric rows across LightEval, BLiMP-IT, perplexity, and generation
 
 ## What runs by default
 
@@ -76,7 +97,14 @@ The framework supports:
 
 Defaults are integration checks, not publication measurements. The main notebook explains and exercises every component without starting the unbounded profile accidentally. The `full` path is opt-in because it can require substantial download, storage, and GPU time.
 
-## Repository structure
+## Installation and execution
+
+### Repository structure
+
+<details>
+<summary><strong>Show repository layout</strong></summary>
+
+<br>
 
 ```text
 configs/
@@ -91,7 +119,9 @@ README.md
 Core logic lives in `src/it_eval_framework`. The notebooks are intentionally thin launchers, not a second implementation.
 The `configs/` directory also contains support YAML such as `generation_prompts.yaml`; programmatic audits should use `discover_evaluation_configs()` instead of treating every YAML file as a full evaluation config.
 
-## Supported runtime target
+</details>
+
+### Supported runtime target
 
 The intended runtime target for the full framework is:
 
@@ -102,14 +132,15 @@ The intended runtime target for the full framework is:
 The dependency pins used for that path are listed in `constraints/lighteval-python310-313.txt`.
 GitHub Actions runs compilation and the network-free unit suite on Python 3.12 for every push and pull request.
 
-One upstream packaging caveat currently matters:
+> [!IMPORTANT]
+> One upstream packaging caveat currently matters:
 
-- `lighteval 0.13.0` declares `datasets>=4.0.0`
-- several Italian tasks still rely on dataset-script behavior that works with `datasets 3.6.0`
+> - `lighteval 0.13.0` declares `datasets>=4.0.0`
+> - several Italian tasks still rely on dataset-script behavior that works with `datasets 3.6.0`
 
 Because of that, the working bootstrap sequence installs `lighteval` first and then pins the shared runtime stack to the known-good versions used by this repository.
 
-## Installation
+### Installation
 
 Create a fresh virtual environment and install the pinned stack:
 
@@ -145,7 +176,7 @@ Or set a token explicitly:
 $env:HF_TOKEN="your_token_here"
 ```
 
-## Start here
+### Recommended local workflow
 
 If you are new to the repository, use this order:
 
@@ -160,7 +191,7 @@ The three most useful entry points are:
 - local model config template: `configs/local_model_example.yaml`
 - benchmark reference for paper writing: `docs/TASK_REFERENCE.md`
 
-## Quick start
+### Quick smoke evaluation
 
 Run tests first:
 
@@ -235,7 +266,7 @@ python -m it_eval_framework.runners.run_perplexity --config configs/italian_base
 python -m it_eval_framework.runners.run_generation --config configs/italian_base_full.yaml
 ```
 
-## Evaluate your model
+### Evaluate your model
 
 The intended user flow is:
 
@@ -303,7 +334,9 @@ Edit `configs/lighteval_task_probe.yaml` one task alias at a time. Classify each
 
 The current supported bounded subset is already promoted in `configs/lighteval_verified_windows.yaml` and in the `verified_windows` suite.
 
-## Colab notebooks
+## Interfaces
+
+### Colab notebooks
 
 The repository includes two Colab-oriented notebooks in `notebooks/`:
 
@@ -322,7 +355,7 @@ The recommended workflow is:
 2. run the quick config on a small model
 3. move to a normal config file for repeated evaluations
 
-## User entry point
+### User entry point
 
 The user-facing model entry is always one of:
 
@@ -331,7 +364,9 @@ The user-facing model entry is always one of:
 
 Optional tokenizer overrides are supported with `model.tokenizer_source`.
 
-## What gets evaluated
+## Evaluation reference
+
+### What gets evaluated
 
 The repository evaluates four different kinds of behavior:
 
@@ -343,9 +378,14 @@ The repository evaluates four different kinds of behavior:
 
 For the exact task-by-task reference, task aliases, formulations, and paper-facing notes, see [docs/TASK_REFERENCE.md](docs/TASK_REFERENCE.md).
 
-## Verified LightEval version and Italian task IDs
+### Verified LightEval version and Italian task IDs
 
 The framework is pinned to `lighteval==0.13.0`. The Italian task registry was verified against the installed multilingual registry on **2026-08-14**.
+
+<details>
+<summary><strong>Show verified Italian task IDs</strong></summary>
+
+<br>
 
 Key verified IDs include:
 
@@ -363,7 +403,9 @@ Key verified IDs include:
 - `mkqa_ita:entity`, `mkqa_ita:short_phrase`, `mkqa_ita:number`, `mkqa_ita:date`, `mkqa_ita:binary`, `mkqa_ita:long_answer`, `mkqa_ita:number_with_unit`
 - `mintaka_ita`
 
-## Output layout
+</details>
+
+### Output layout
 
 Each run is written under:
 
@@ -383,7 +425,7 @@ evaluation_results/
         report.md
 ```
 
-## Benchmark table
+### Benchmark table
 
 | Benchmark | Source | Formulation | Primary metric | Notes |
 |---|---|---|---|---|
@@ -398,11 +440,18 @@ evaluation_results/
 | Held-out perplexity | Italian local file or Italian HF dataset | sliding-window NLL | token perplexity | contamination warning required |
 | Controlled generation | local prompts | greedy / sampled decoding | diagnostics + human review | not a substitute for human evaluation |
 
-## ItaCoLA status
+### ItaCoLA status
 
 ItaCoLA is not implemented as a default base-model benchmark. The standard task is supervised acceptability classification, and this framework does not present an ad hoc zero-shot prompt as equivalent. A separate downstream supervised module can be added later.
 
-## Windows notes
+## Operations and extension
+
+### Windows notes
+
+<details>
+<summary><strong>Show Windows-specific operational notes</strong></summary>
+
+<br>
 
 Windows is supported, but a few practical issues should be expected:
 
@@ -413,7 +462,9 @@ Windows is supported, but a few practical issues should be expected:
 
 These are operational issues, not framework design constraints.
 
-## Current limitations
+</details>
+
+### Current limitations
 
 - LightEval multilingual tasks require the `multilingual` extra
 - some datasets may be gated, rate-limited, or temporarily unavailable
@@ -423,12 +474,17 @@ These are operational issues, not framework design constraints.
 - `global_mmlu` and `mlmm_mmlu` expand to subject-level tasks, so aggregation is still task-level
 - `mkqa.long_answer` is excluded from the supported bounded probe path because the current probe finds no documents to evaluate for `mkqa_ita:long_answer`
 
-## Supported bounded LightEval path
+### Supported bounded LightEval path
+
+<details>
+<summary><strong>Show the validated bounded LightEval path</strong></summary>
+
+<br>
 
 On the local Windows target validated on **2026-08-14** with Python `3.12.10`, the supported LightEval subset is:
 
-- the `verified_windows` suite in [src/it_eval_framework/task_registry.py](C:/Users/User/PycharmProjects/PythonProject/it_eval_autoregressive_llms/src/it_eval_framework/task_registry.py)
-- the matching config [configs/lighteval_verified_windows.yaml](C:/Users/User/PycharmProjects/PythonProject/it_eval_autoregressive_llms/configs/lighteval_verified_windows.yaml)
+- the `verified_windows` suite in [`src/it_eval_framework/task_registry.py`](src/it_eval_framework/task_registry.py)
+- the matching config [`configs/lighteval_verified_windows.yaml`](configs/lighteval_verified_windows.yaml)
 
 That subset contains all aliases that completed in bounded local probes under the current wrapper path, including:
 
@@ -450,7 +506,9 @@ Excluded from that supported bounded path:
 
 - `mkqa.long_answer`, because the current bounded probe still raises `Task mkqa_ita:long_answer has no documents to evaluate skipping.`
 
-## Adding a new Italian task
+</details>
+
+### Adding a new Italian task
 
 1. Verify the exact task name from the installed LightEval registry for the pinned version
 2. Add the alias mapping in `src/it_eval_framework/task_registry.py`
@@ -458,7 +516,7 @@ Excluded from that supported bounded path:
 4. Update the benchmark table in this README
 5. Add a smoke config entry with `max_samples` before enabling it broadly
 
-## Recommended next steps
+### Recommended next steps
 
 1. run publication-scale evaluations with a model and Italian corpus appropriate to the research question
 2. pin `model.revision` and `perplexity.dataset_revision` to immutable commit hashes for archival runs
