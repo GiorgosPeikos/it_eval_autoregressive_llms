@@ -106,6 +106,17 @@ print(run_dir)
 
 Do not begin with `full`. First prove that `quick` works, then choose the components and limits appropriate to the research question.
 
+The LightEval component has its own suite selector. `quick` selects 1 task, `full`
+selects the 33-task curated suite, `verified_windows` selects 39 task variants that
+have been retained in the broad verified set, and `all` selects all 40 Italian task
+variants registered by this framework. `all` is exhaustive with respect to this
+repository's Italian registry, not every language and task distributed by LightEval.
+
+`lighteval.max_samples: null` means every available example in each selected task.
+It has no effect while `lighteval.enabled` is false. Likewise,
+`blimp_it.max_samples: null` means every example across every selected BLiMP-IT
+subset.
+
 ### Controlling remote perplexity corpus size
 
 Remote perplexity datasets stream by default. Streaming avoids materializing unused

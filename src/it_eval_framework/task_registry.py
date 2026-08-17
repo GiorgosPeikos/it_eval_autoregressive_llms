@@ -72,6 +72,12 @@ ITALIAN_LIGHTEVAL_TASKS = {
     },
 }
 
+ALL_ITALIAN_LIGHTEVAL_ALIASES = [
+    f"{group}.{variant}"
+    for group, variants in ITALIAN_LIGHTEVAL_TASKS.items()
+    for variant in variants
+]
+
 DEFAULT_LIGHTEVAL_SUITES = {
     "quick": [
         "squad_it.default",
@@ -152,6 +158,9 @@ DEFAULT_LIGHTEVAL_SUITES = {
         "xcsqa.hybrid",
         "xcsqa.mcf",
     ],
+    # Every Italian task/variant registered by this framework. This includes
+    # tasks omitted from the curated full/verified suites.
+    "all": ALL_ITALIAN_LIGHTEVAL_ALIASES,
 }
 
 

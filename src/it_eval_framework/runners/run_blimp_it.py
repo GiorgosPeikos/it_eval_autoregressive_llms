@@ -56,6 +56,12 @@ def run(config_path: str):
     dataset_metadata = []
 
     for subset in subsets:
+        if context.is_main:
+            print(
+                f"[blimp_it] Loading dataset={config.blimp_it.dataset_repo}; "
+                f"subset={subset}; split={config.blimp_it.split}",
+                flush=True,
+            )
         dataset = load_dataset(
             config.blimp_it.dataset_repo,
             subset,
@@ -75,6 +81,12 @@ def run(config_path: str):
             if remaining <= 0:
                 break
             dataset = dataset.select(range(min(len(dataset), remaining)))
+        if context.is_main:
+            print(
+                f"[blimp_it] Evaluating subset={subset}; available={dataset_metadata[-1]['num_rows']}; "
+                f"selected={len(dataset)}; remaining_global_limit={remaining if remaining is not None else 'all'}",
+                flush=True,
+            )
 
         for index, example in enumerate(dataset):
             owned = context.owns(global_index)

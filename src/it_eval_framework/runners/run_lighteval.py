@@ -99,7 +99,9 @@ def run(config_path: str) -> Path:
     env.setdefault("HF_DATASETS_TRUST_REMOTE_CODE", "1")
     env.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
     apply_windows_hf_cache_overrides(env)
-    print(f"[lighteval] Running tasks: {', '.join(task_names)}", flush=True)
+    print(f"[lighteval] Running {len(task_names)} task(s):", flush=True)
+    for index, (alias, task_name) in enumerate(zip(config.lighteval.task_aliases, task_names), start=1):
+        print(f"[lighteval]   Task {index}/{len(task_names)}: {alias} -> {task_name}", flush=True)
     print(f"[lighteval] Log file: {run_dir / 'lighteval_stdout.log'}", flush=True)
     print(
         "[lighteval] Phase 1/3: loading task definitions and downloading datasets.",

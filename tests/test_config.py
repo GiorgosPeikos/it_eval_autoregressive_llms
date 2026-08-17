@@ -1,6 +1,8 @@
 from pathlib import Path
 
 from it_eval_framework.config import discover_evaluation_configs, load_config
+from it_eval_framework.config import EvaluationConfig
+from it_eval_framework.task_registry import ALL_ITALIAN_LIGHTEVAL_ALIASES
 
 
 def test_quick_config_loads():
@@ -43,3 +45,17 @@ def test_all_discovered_evaluation_configs_load():
     assert Path("configs/italian_base_quick.yaml") in paths
     for path in paths:
         load_config(path)
+
+
+def test_all_lighteval_suite_expands_every_registered_alias():
+    config = EvaluationConfig.model_validate(
+        {
+            "model": {"source": "owner/model"},
+            "lighteval": {"enabled": True, "suite": "all"},
+            "blimp_it": {"enabled": False},
+            "perplexity": None,
+            "generation": {"enabled": False},
+        }
+    )
+
+    assert config.lighteval.task_aliases == ALL_ITALIAN_LIGHTEVAL_ALIASES

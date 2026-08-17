@@ -261,7 +261,7 @@ When you prepare a model-specific config, the most important fields are:
 - `model.source`: local checkpoint path or Hugging Face repo id
 - `model.tokenizer_source`: tokenizer override when needed
 - `model.device`: `cpu`, `cuda:0`, or another explicit device
-- `lighteval.suite`: `quick`, `full`, or `verified_windows`
+- `lighteval.suite`: `quick`, `full`, `verified_windows`, or `all` (every registered Italian task variant)
 - `perplexity.dataset_path` or `perplexity.dataset_repo`: your held-out corpus
 - for this repository's intended use, that held-out corpus should be Italian
 - the repository defaults use `gsarti/clean_mc4_it` as an Italian-only Hugging Face example corpus

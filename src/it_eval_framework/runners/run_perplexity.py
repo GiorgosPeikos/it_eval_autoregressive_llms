@@ -50,6 +50,13 @@ def run(config_path: str):
     model = load_model(model_config)
     tokenizer = load_tokenizer(model_config)
     input_device = model_input_device(model, model_config.device)
+    if context.is_main:
+        print(
+            f"[perplexity] Loading dataset={config.perplexity.dataset_repo or config.perplexity.dataset_path}; "
+            f"subset={config.perplexity.dataset_subset}; split={config.perplexity.split}; "
+            f"streaming={config.perplexity.dataset_streaming}",
+            flush=True,
+        )
     dataset = load_text_dataset(config)
     try:
         num_rows_before_limit = len(dataset)

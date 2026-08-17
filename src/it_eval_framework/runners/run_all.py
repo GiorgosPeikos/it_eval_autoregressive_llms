@@ -9,6 +9,7 @@ from it_eval_framework.runners.run_generation import run as run_generation
 from it_eval_framework.runners.run_lighteval import run as run_lighteval
 from it_eval_framework.runners.run_perplexity import run as run_perplexity
 from it_eval_framework.runners.common import load_runner_config
+from it_eval_framework.runners.plan import print_evaluation_plan
 from it_eval_framework.run_layout import build_run_directory
 from it_eval_framework.utils.io import ensure_dir, write_yaml
 from it_eval_framework.utils.distributed import initialize_distributed
@@ -30,6 +31,7 @@ def run(config_path: str) -> Path:
         print(f"[run_all] Model revision: {config.model.revision}", flush=True)
         print(f"[run_all] Tokenizer revision: {config.model.tokenizer_revision}", flush=True)
         print(f"[run_all] Distributed processes: {context.world_size}", flush=True)
+        print_evaluation_plan(config)
     if config.lighteval.enabled:
         if context.is_main:
             print("[run_all] Starting LightEval", flush=True)
