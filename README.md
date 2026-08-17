@@ -46,7 +46,7 @@ For metric formulas, the meaning of accuracy/perplexity/generation diagnostics, 
 
 For replicated inference across several GPUs, large-model sharding, launch commands, and scheduler guidance, see [Multi-GPU evaluation](docs/MULTI_GPU_README.md).
 
-Version `0.1.1` is published on [PyPI](https://pypi.org/project/it-eval-framework/). GitHub installation remains available when testing unreleased commits.
+Version `0.1.2` is published on [PyPI](https://pypi.org/project/it-eval-framework/). GitHub installation remains available when testing unreleased commits.
 
 ## Scope
 
