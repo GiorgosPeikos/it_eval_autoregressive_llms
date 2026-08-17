@@ -60,6 +60,19 @@ def load_tokenizer(model_config: ModelConfig):
     return tokenizer
 
 
+def prepare_generation_inputs(tokenizer, prompt: str, device: str):
+    """Tokenize a single decoder-only prompt with generation-safe inputs."""
+    encoded = tokenizer(
+        prompt,
+        return_tensors="pt",
+        return_token_type_ids=False,
+    )
+    # Some custom tokenizers ignore return_token_type_ids. Segment IDs are not
+    # needed for a single decoder-only prompt and many causal LMs reject them.
+    encoded.pop("token_type_ids", None)
+    return encoded.to(device)
+
+
 def load_model(model_config: ModelConfig):
     torch_dtype = DTYPE_MAP[model_config.dtype]
     kwargs = {

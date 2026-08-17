@@ -10,7 +10,7 @@ from it_eval_framework.metrics.generation_diagnostics import summarize_generatio
 from it_eval_framework.reporting.normalize_results import RESULT_SCHEMA_VERSION, metric_row
 from it_eval_framework.runners.common import mark_finished, mark_started, prepare_run
 from it_eval_framework.utils.io import write_json, write_jsonl
-from it_eval_framework.utils.modeling import load_model, load_tokenizer
+from it_eval_framework.utils.modeling import load_model, load_tokenizer, prepare_generation_inputs
 
 
 def load_prompts(path: str) -> list[GenerationPrompt]:
@@ -38,7 +38,7 @@ def run(config_path: str):
     torch.manual_seed(config.generation.seed)
     rows = []
     for prompt in prompts:
-        encoded = tokenizer(prompt.prompt_text, return_tensors="pt").to(config.model.device)
+        encoded = prepare_generation_inputs(tokenizer, prompt.prompt_text, config.model.device)
         prompt_token_count = encoded["input_ids"].shape[1]
         for profile in config.generation.profiles:
             generation_kwargs = {

@@ -9,6 +9,12 @@ class FakeTokenizer:
     eos_token = "<eos>"
 
 
+class FakeBatch(dict):
+    def to(self, device):
+        self["observed_device"] = device
+        return self
+
+
 def test_load_tokenizer_passes_resolved_hub_tokenizer_file(monkeypatch):
     observed = {}
     cached_file = "/cache/snapshot/tokenizer.json"
@@ -56,3 +62,22 @@ def test_resolve_tokenizer_file_allows_repositories_without_fast_file(monkeypatc
     resolved = modeling.resolve_tokenizer_file(ModelConfig(source="owner/model"))
 
     assert resolved is None
+
+
+def test_prepare_generation_inputs_removes_decoder_unused_segment_ids():
+    observed = {}
+
+    def tokenizer(prompt, **kwargs):
+        observed["prompt"] = prompt
+        observed["kwargs"] = kwargs
+        return FakeBatch(input_ids=[[1, 2]], attention_mask=[[1, 1]], token_type_ids=[[0, 0]])
+
+    encoded = modeling.prepare_generation_inputs(tokenizer, "Ciao", "cuda")
+
+    assert observed["prompt"] == "Ciao"
+    assert observed["kwargs"] == {
+        "return_tensors": "pt",
+        "return_token_type_ids": False,
+    }
+    assert "token_type_ids" not in encoded
+    assert encoded["observed_device"] == "cuda"
