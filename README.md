@@ -40,6 +40,8 @@ Clone the repository and use the pinned development installation described below
 
 For model revisions, local checkpoints, preset selection, LightEval installation, result interpretation, and archival guidance, see [Evaluate your Italian language model](docs/USER_GUIDE.md).
 
+For the pinned LightEval installation, Colab settings, suite selection, bounded-to-full progression, and troubleshooting, see [Running LightEval reliably](docs/LIGHTEVAL_README.md).
+
 For replicated inference across several GPUs, large-model sharding, launch commands, and scheduler guidance, see [Multi-GPU evaluation](docs/MULTI_GPU_README.md).
 
 Version `0.1.1` is published on [PyPI](https://pypi.org/project/it-eval-framework/). GitHub installation remains available when testing unreleased commits.
@@ -261,7 +263,7 @@ When you prepare a model-specific config, the most important fields are:
 - `model.source`: local checkpoint path or Hugging Face repo id
 - `model.tokenizer_source`: tokenizer override when needed
 - `model.device`: `cpu`, `cuda:0`, or another explicit device
-- `lighteval.suite`: `quick`, `full`, `verified_windows`, or `all` (every registered Italian task variant)
+- `lighteval.suite`: `quick`, `full`, `verified_windows`, or `all` (every currently evaluable registered Italian task variant)
 - `perplexity.dataset_path` or `perplexity.dataset_repo`: your held-out corpus
 - for this repository's intended use, that held-out corpus should be Italian
 - the repository defaults use `gsarti/clean_mc4_it` as an Italian-only Hugging Face example corpus

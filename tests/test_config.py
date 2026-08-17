@@ -2,7 +2,10 @@ from pathlib import Path
 
 from it_eval_framework.config import discover_evaluation_configs, load_config
 from it_eval_framework.config import EvaluationConfig
-from it_eval_framework.task_registry import ALL_ITALIAN_LIGHTEVAL_ALIASES
+from it_eval_framework.task_registry import (
+    ALL_EVALUABLE_ITALIAN_LIGHTEVAL_ALIASES,
+    NON_EVALUABLE_LIGHTEVAL_ALIASES,
+)
 
 
 def test_quick_config_loads():
@@ -58,4 +61,22 @@ def test_all_lighteval_suite_expands_every_registered_alias():
         }
     )
 
-    assert config.lighteval.task_aliases == ALL_ITALIAN_LIGHTEVAL_ALIASES
+    assert config.lighteval.task_aliases == ALL_EVALUABLE_ITALIAN_LIGHTEVAL_ALIASES
+    assert not (set(config.lighteval.task_aliases) & NON_EVALUABLE_LIGHTEVAL_ALIASES)
+
+
+def test_enabled_lighteval_requires_tasks():
+    try:
+        EvaluationConfig.model_validate(
+            {
+                "model": {"source": "owner/model"},
+                "lighteval": {"enabled": True, "suite": None},
+                "blimp_it": {"enabled": False},
+                "perplexity": None,
+                "generation": {"enabled": False},
+            }
+        )
+    except ValueError as error:
+        assert "requires a suite" in str(error)
+    else:
+        raise AssertionError("Expected enabled task-less LightEval config to fail")

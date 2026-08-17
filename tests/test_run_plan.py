@@ -37,3 +37,21 @@ def test_plan_lists_every_selected_lighteval_task(capsys):
 
     assert "suite=quick; tasks=1; at most 2 samples per task" in output
     assert "squad_it.default -> squad_ita" in output
+
+
+def test_all_plan_excludes_known_zero_document_task(capsys):
+    config = EvaluationConfig.model_validate(
+        {
+            "model": {"source": "owner/model"},
+            "lighteval": {"enabled": True, "suite": "all", "max_samples": 2},
+            "blimp_it": {"enabled": False},
+            "perplexity": None,
+            "generation": {"enabled": False},
+        }
+    )
+
+    print_evaluation_plan(config)
+    output = capsys.readouterr().out
+
+    assert "suite=all; tasks=39" in output
+    assert "mkqa.long_answer" not in output

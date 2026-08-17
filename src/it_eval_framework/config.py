@@ -45,15 +45,20 @@ class LightEvalConfig(BaseModel):
     enabled: bool = True
     suite: str | None = "quick"
     task_aliases: list[str] = Field(default_factory=list)
-    num_fewshot_seeds: int = 1
-    max_samples: int | None = None
-    dataset_loading_processes: int = 1
+    num_fewshot_seeds: int = Field(default=1, gt=0)
+    max_samples: int | None = Field(default=None, gt=0)
+    dataset_loading_processes: int = Field(default=1, gt=0)
     extra_args: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def fill_suite(self) -> "LightEvalConfig":
         if self.suite:
+            if self.suite not in DEFAULT_LIGHTEVAL_SUITES:
+                choices = ", ".join(DEFAULT_LIGHTEVAL_SUITES)
+                raise ValueError(f"Unknown LightEval suite {self.suite!r}. Choose from: {choices}")
             self.task_aliases = list(dict.fromkeys([*self.task_aliases, *DEFAULT_LIGHTEVAL_SUITES[self.suite]]))
+        if self.enabled and not self.task_aliases:
+            raise ValueError("Enabled LightEval requires a suite or at least one task_alias.")
         return self
 
 

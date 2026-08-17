@@ -5,6 +5,9 @@ import re
 from dataclasses import replace
 from pathlib import Path, PureWindowsPath
 
+from huggingface_hub import hf_hub_download
+from huggingface_hub.utils import EntryNotFoundError
+
 
 def _patch_windows_cache_paths() -> None:
     if os.name != "nt":
@@ -32,6 +35,33 @@ def _patch_xxhash_string_inputs() -> None:
         return original_xxh64(data, *args, **kwargs)
 
     xxhash.xxh64 = compatible_xxh64
+
+
+def _resolve_tokenizer_json(source: str, revision: str | None) -> str | None:
+    local_source = Path(source)
+    if local_source.exists():
+        candidate = local_source / "tokenizer.json" if local_source.is_dir() else local_source
+        return str(candidate.resolve()) if candidate.is_file() else None
+    try:
+        return hf_hub_download(repo_id=source, filename="tokenizer.json", revision=revision)
+    except EntryNotFoundError:
+        return None
+
+
+def _patch_transformers_tokenizer_file_resolution() -> None:
+    """Give LightEval an absolute fast-tokenizer path on Transformers 4.57."""
+    from transformers import AutoTokenizer
+
+    original_from_pretrained = AutoTokenizer.from_pretrained
+
+    def compatible_from_pretrained(source, *args, **kwargs):
+        if kwargs.get("use_fast", True) and "tokenizer_file" not in kwargs:
+            tokenizer_file = _resolve_tokenizer_json(str(source), kwargs.get("revision"))
+            if tokenizer_file:
+                kwargs["tokenizer_file"] = tokenizer_file
+        return original_from_pretrained(source, *args, **kwargs)
+
+    AutoTokenizer.from_pretrained = compatible_from_pretrained
 
 
 def _sanitize_filename_component(value: str) -> str:
@@ -179,6 +209,7 @@ def _patch_problematic_task_revisions() -> None:
 def main() -> None:
     _patch_windows_cache_paths()
     _patch_xxhash_string_inputs()
+    _patch_transformers_tokenizer_file_resolution()
     _patch_details_save_paths()
     _patch_transformers_pmi_loglikelihood()
     _patch_transformers_greedy_until_stop_sequences()

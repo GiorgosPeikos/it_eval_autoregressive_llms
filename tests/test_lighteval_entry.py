@@ -4,6 +4,7 @@ from lighteval.models.model_output import ModelResponse
 
 from it_eval_framework.runners.lighteval_entry import (
     _merge_unconditioned_response,
+    _resolve_tokenizer_json,
     _sanitize_filename_component,
     _sanitize_windows_cache_path,
     _to_windows_extended_path,
@@ -35,3 +36,12 @@ def test_merge_unconditioned_response_appends_logprobs():
 
     assert merged.logprobs == [-1.0, -2.0, -0.5, -1.5]
     assert merged.unconditioned_logprobs == [-0.5, -1.5]
+
+
+def test_resolve_tokenizer_json_returns_absolute_local_file(tmp_path):
+    tokenizer_dir = tmp_path / "tokenizer"
+    tokenizer_dir.mkdir()
+    tokenizer_json = tokenizer_dir / "tokenizer.json"
+    tokenizer_json.write_text("{}", encoding="utf-8")
+
+    assert _resolve_tokenizer_json(str(tokenizer_dir), None) == str(tokenizer_json.resolve())

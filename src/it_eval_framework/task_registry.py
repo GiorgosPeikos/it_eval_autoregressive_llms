@@ -78,6 +78,14 @@ ALL_ITALIAN_LIGHTEVAL_ALIASES = [
     for variant in variants
 ]
 
+# LightEval exposes this variant, but the pinned dataset/task combination
+# currently yields zero evaluation documents. Keep it addressable as a custom
+# alias without including it in an executable all-task sweep.
+NON_EVALUABLE_LIGHTEVAL_ALIASES = {"mkqa.long_answer"}
+ALL_EVALUABLE_ITALIAN_LIGHTEVAL_ALIASES = [
+    alias for alias in ALL_ITALIAN_LIGHTEVAL_ALIASES if alias not in NON_EVALUABLE_LIGHTEVAL_ALIASES
+]
+
 DEFAULT_LIGHTEVAL_SUITES = {
     "quick": [
         "squad_it.default",
@@ -158,9 +166,9 @@ DEFAULT_LIGHTEVAL_SUITES = {
         "xcsqa.hybrid",
         "xcsqa.mcf",
     ],
-    # Every Italian task/variant registered by this framework. This includes
-    # tasks omitted from the curated full/verified suites.
-    "all": ALL_ITALIAN_LIGHTEVAL_ALIASES,
+    # Every Italian task/variant that produces evaluation documents with the
+    # pinned LightEval runtime. Known zero-document variants are excluded.
+    "all": ALL_EVALUABLE_ITALIAN_LIGHTEVAL_ALIASES,
 }
 
 

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -13,6 +12,7 @@ from it_eval_framework.task_registry import LIGHTEVAL_VERSION, resolve_task_alia
 from it_eval_framework.utils.io import read_json, write_json
 from it_eval_framework.utils.env import huggingface_dataset_revisions
 from it_eval_framework.utils.distributed import initialize_distributed
+from it_eval_framework.utils.lighteval_runtime import require_lighteval_environment
 
 
 def apply_windows_hf_cache_overrides(env: dict[str, str]) -> None:
@@ -49,6 +49,11 @@ def latest_results_json(output_dir: Path) -> Path | None:
     return candidates[-1] if candidates else None
 
 
+def compatibility_command() -> list[str]:
+    """Always use repository patches, including on Linux and Colab."""
+    return [sys.executable, "-m", "it_eval_framework.runners.lighteval_entry"]
+
+
 def run(config_path: str) -> Path:
     config = load_runner_config(config_path)
     if not config.lighteval.enabled:
@@ -62,18 +67,24 @@ def run(config_path: str) -> Path:
         context.barrier()
         return run_dir
 
+    environment_report = require_lighteval_environment()
+    print(f"[lighteval] Runtime versions: {environment_report['versions']}", flush=True)
+    for warning in environment_report["warnings"]:
+        print(f"[lighteval] WARNING: {warning}", flush=True)
+    if config.runtime.lighteval_command != "lighteval":
+        print(
+            "[lighteval] WARNING: runtime.lighteval_command is ignored by the pinned compatibility path; "
+            "the current Python environment is used.",
+            flush=True,
+        )
+
     task_names = resolve_task_aliases(config.lighteval.task_aliases)
     lighteval_dir = run_dir / "lighteval_raw"
     mark_started(run_dir, "lighteval")
     state.mark("lighteval", "running", task_names=task_names)
 
-    base_command = [config.runtime.lighteval_command]
-    if os.name == "nt":
-        base_command = [sys.executable, "-m", "it_eval_framework.runners.lighteval_entry"]
-    elif shutil.which(config.runtime.lighteval_command) is None:
-        base_command = [sys.executable, "-m", "lighteval"]
     command = [
-        *base_command,
+        *compatibility_command(),
         "accelerate",
         build_model_args(config),
         ",".join(task_names),
@@ -103,18 +114,7 @@ def run(config_path: str) -> Path:
     for index, (alias, task_name) in enumerate(zip(config.lighteval.task_aliases, task_names), start=1):
         print(f"[lighteval]   Task {index}/{len(task_names)}: {alias} -> {task_name}", flush=True)
     print(f"[lighteval] Log file: {run_dir / 'lighteval_stdout.log'}", flush=True)
-    print(
-        "[lighteval] Phase 1/3: loading task definitions and downloading datasets.",
-        flush=True,
-    )
-    print(
-        "[lighteval] Phase 2/3: preparing task documents and filtering benchmark splits.",
-        flush=True,
-    )
-    print(
-        "[lighteval] Phase 3/3: running model inference after dataset preparation completes.",
-        flush=True,
-    )
+    print("[lighteval] Starting dataset preparation; inference follows as each task becomes ready.", flush=True)
     output_lines: list[str] = []
     with subprocess.Popen(
         command,
@@ -136,9 +136,12 @@ def run(config_path: str) -> Path:
         encoding="utf-8",
     )
     if completed_returncode != 0:
+        state.mark("lighteval", "failed", exit_code=completed_returncode)
+        output_tail = "\n".join(combined_output.splitlines()[-40:])
         raise RuntimeError(
             f"LightEval failed with exit code {completed_returncode}. "
-            f"See {run_dir / 'lighteval_stdout.log'} and {run_dir / 'lighteval_stderr.log'}."
+            f"See {run_dir / 'lighteval_stdout.log'} and {run_dir / 'lighteval_stderr.log'}.\n"
+            f"Last output lines:\n{output_tail}"
         )
 
     raw_results_path = latest_results_json(lighteval_dir)
@@ -150,6 +153,8 @@ def run(config_path: str) -> Path:
         "schema_version": RESULT_SCHEMA_VERSION,
         "backend": "lighteval",
         "lighteval_version": LIGHTEVAL_VERSION,
+        "runtime_versions": environment_report["versions"],
+        "runtime_warnings": environment_report["warnings"],
         "resolved_tasks": task_names,
         "results_file": str(raw_results_path),
         "normalized_metrics": normalize_lighteval_results(raw_results),

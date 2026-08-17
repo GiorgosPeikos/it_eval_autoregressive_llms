@@ -387,6 +387,13 @@ Current user-facing paths are:
 
 The currently supported local Windows LightEval subset is the `verified_windows` suite:
 
+The `all` suite selects the same 39 currently evaluable Italian task variants on
+every supported platform. The registry also knows `mkqa.long_answer`, but that
+variant is intentionally excluded from executable sweeps because it produces zero
+evaluation documents with the pinned LightEval 0.13.0 stack. Installation,
+preflight, Colab settings, and staged-run instructions are documented in
+[Running LightEval reliably](LIGHTEVAL_README.md).
+
 - `exams.cf`
 - `exams.hybrid`
 - `exams.mcf`
