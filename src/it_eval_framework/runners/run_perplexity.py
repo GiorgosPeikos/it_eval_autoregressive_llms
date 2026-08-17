@@ -33,7 +33,7 @@ def load_text_dataset(config) -> Iterable[dict]:
 
 
 def run(config_path: str):
-    config = load_config(config_path)
+    config = load_config(config_path, resolve_revisions=True)
     if not config.perplexity or not config.perplexity.enabled:
         raise ValueError("Perplexity is disabled in this config.")
 

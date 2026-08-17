@@ -145,8 +145,14 @@ def load_yaml(path: str | Path) -> dict:
         return yaml.safe_load(handle)
 
 
-def load_config(path: str | Path) -> EvaluationConfig:
-    return EvaluationConfig.model_validate(load_yaml(path))
+def load_config(path: str | Path, *, resolve_revisions: bool = False) -> EvaluationConfig:
+    config = EvaluationConfig.model_validate(load_yaml(path))
+    if resolve_revisions:
+        # Imported lazily to keep ordinary config parsing network-free.
+        from it_eval_framework.utils.revisions import resolve_model_revisions
+
+        return resolve_model_revisions(config)
+    return config
 
 
 def discover_evaluation_configs(directory: str | Path) -> list[Path]:

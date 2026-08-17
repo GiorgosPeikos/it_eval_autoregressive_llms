@@ -48,7 +48,7 @@ def latest_results_json(output_dir: Path) -> Path | None:
 
 
 def run(config_path: str) -> Path:
-    config = load_config(config_path)
+    config = load_config(config_path, resolve_revisions=True)
     if not config.lighteval.enabled:
         raise ValueError("LightEval is disabled in this config.")
 

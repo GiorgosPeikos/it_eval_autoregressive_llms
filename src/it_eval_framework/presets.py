@@ -33,13 +33,15 @@ def build_evaluation_config(
     is_full = preset == "full"
     is_ppl_only = preset == "perplexity"
     is_lighteval_only = preset == "verified_windows"
+    tokenizer_source = tokenizer or model
+    inherited_tokenizer_revision = revision if tokenizer_source == model else None
     payload = {
         "run_name": run_name or f"{preset}_evaluation",
         "model": {
             "source": model,
-            "tokenizer_source": tokenizer or model,
+            "tokenizer_source": tokenizer_source,
             "revision": revision,
-            "tokenizer_revision": tokenizer_revision or revision,
+            "tokenizer_revision": tokenizer_revision or inherited_tokenizer_revision,
             "artifact_sha256": artifact_sha256,
             "device": resolved_device,
             "dtype": dtype,

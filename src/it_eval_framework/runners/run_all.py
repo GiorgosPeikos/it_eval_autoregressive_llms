@@ -10,12 +10,19 @@ from it_eval_framework.runners.run_generation import run as run_generation
 from it_eval_framework.runners.run_lighteval import run as run_lighteval
 from it_eval_framework.runners.run_perplexity import run as run_perplexity
 from it_eval_framework.run_layout import build_run_directory
+from it_eval_framework.utils.io import ensure_dir, write_yaml
 
 
 def run(config_path: str) -> Path:
-    config = load_config(config_path)
+    config = load_config(config_path, resolve_revisions=True)
     run_dir = build_run_directory(config)
+    ensure_dir(run_dir)
+    resolved_config_path = run_dir / "resolved_config.yaml"
+    write_yaml(resolved_config_path, config.model_dump(mode="json"))
+    config_path = str(resolved_config_path)
     print(f"[run_all] Run directory: {run_dir}", flush=True)
+    print(f"[run_all] Model revision: {config.model.revision}", flush=True)
+    print(f"[run_all] Tokenizer revision: {config.model.tokenizer_revision}", flush=True)
     if config.lighteval.enabled:
         print("[run_all] Starting LightEval", flush=True)
         run_lighteval(config_path)

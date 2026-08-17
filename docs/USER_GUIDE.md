@@ -15,8 +15,15 @@ For a Hub model:
 
 ```python
 MODEL_SOURCE = "my-org/my-italian-model"
-MODEL_REVISION = "immutable-hugging-face-commit"
+MODEL_REVISION = None  # Automatically resolved to the current immutable commit SHA.
 ```
+
+Model and tokenizer revisions are resolved independently. If both sources name the
+same Hub repository, the resolved SHA is shared. If `tokenizer_source` names a
+different repository, omit `tokenizer_revision` to resolve that repository's own
+current SHA. The resolved values are saved in `resolved_config.yaml` and
+`run_config.yaml` inside the run directory. Supply explicit commit SHAs when you
+need to reproduce an older snapshot rather than the current repository state.
 
 For a checkpoint stored in Google Drive:
 

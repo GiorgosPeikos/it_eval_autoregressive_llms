@@ -15,8 +15,11 @@ def build_parser() -> argparse.ArgumentParser:
     source.add_argument("--model", help="Hugging Face model id or local checkpoint path.")
     evaluate_parser.add_argument("--preset", choices=PRESET_NAMES, default="quick")
     evaluate_parser.add_argument("--tokenizer", help="Tokenizer id/path; defaults to the model source.")
-    evaluate_parser.add_argument("--revision", help="Immutable model revision for reproducible runs.")
-    evaluate_parser.add_argument("--tokenizer-revision", help="Tokenizer revision; defaults to --revision.")
+    evaluate_parser.add_argument("--revision", help="Model revision; omitted/main values are resolved to a commit SHA.")
+    evaluate_parser.add_argument(
+        "--tokenizer-revision",
+        help="Tokenizer revision; resolved independently when the tokenizer uses another repository.",
+    )
     evaluate_parser.add_argument("--device", default="auto", help="auto, cpu, cuda, or an explicit device.")
     evaluate_parser.add_argument("--dtype", choices=("auto", "float32", "float16", "bfloat16"), default="auto")
     evaluate_parser.add_argument("--batch-size", type=int, default=1)

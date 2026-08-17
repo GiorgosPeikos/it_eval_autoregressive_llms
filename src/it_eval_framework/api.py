@@ -7,7 +7,14 @@ import yaml
 
 from it_eval_framework.config import EvaluationConfig
 from it_eval_framework.presets import build_evaluation_config
-from it_eval_framework.runners.run_all import run as run_all
+
+
+def run_all(config_path: str) -> Path:
+    # Keep the runner import lazy so ``python -m ...runners.run_all`` does not
+    # preload the module through package initialization.
+    from it_eval_framework.runners.run_all import run
+
+    return run(config_path)
 
 
 def evaluate(

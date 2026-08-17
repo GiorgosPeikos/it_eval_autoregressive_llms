@@ -26,7 +26,7 @@ def select_fields(example: dict, config) -> tuple[str, str]:
 
 
 def run(config_path: str):
-    config = load_config(config_path)
+    config = load_config(config_path, resolve_revisions=True)
     if not config.blimp_it.enabled:
         raise ValueError("BLiMP-IT is disabled in this config.")
 

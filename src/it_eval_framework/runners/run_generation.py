@@ -19,7 +19,7 @@ def load_prompts(path: str) -> list[GenerationPrompt]:
 
 
 def run(config_path: str):
-    config = load_config(config_path)
+    config = load_config(config_path, resolve_revisions=True)
     if not config.generation.enabled:
         raise ValueError("Generation is disabled in this config.")
 
