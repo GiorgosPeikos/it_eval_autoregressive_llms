@@ -61,6 +61,7 @@ def test_quickstart_matches_the_explanatory_result_structure():
     cell_ids = [cell.get("metadata", {}).get("id") for cell in notebook["cells"]]
 
     assert "ENABLE_LIGHTEVAL = False" in source
+    assert "RUN_REPOSITORY_TESTS = False" in source
     assert "These are integration checks, not publication measurements" in source
     assert "annotate_metric_rows" in source
     assert "There is no scientifically valid universal total" in source
