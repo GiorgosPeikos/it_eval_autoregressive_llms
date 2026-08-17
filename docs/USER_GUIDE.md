@@ -102,7 +102,7 @@ print(run_dir)
 | `quick` | First end-to-end integration check | yes | no |
 | `perplexity` | Fast Italian corpus/model compatibility check | yes | no |
 | `verified_windows` | Supported bounded LightEval task set | yes | yes |
-| `full` | Complete configured evaluation | no | yes |
+| `full` | All offered evaluable tasks/corpora/prompts | no | yes (`all`, 39 variants) |
 
 Do not begin with `full`. First prove that `quick` works, then choose the components and limits appropriate to the research question.
 
@@ -154,6 +154,10 @@ python -m pip install "it-eval-framework==0.1.1" --no-deps
 Use Python 3.10–3.13. Authenticate with `hf auth login` before a large task sweep.
 
 ## Results
+
+For formulas and interpretation—including what accuracy `1.0` means, how BLiMP-IT
+and LightEval aggregate correctness, when perplexity is comparable, and how to read
+generation diagnostics—see [Understanding evaluation results](RESULTS_README.md).
 
 The returned run directory is the evaluation artifact. Preserve the complete directory, including:
 

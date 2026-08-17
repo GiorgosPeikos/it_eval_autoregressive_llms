@@ -42,6 +42,8 @@ For model revisions, local checkpoints, preset selection, LightEval installation
 
 For the pinned LightEval installation, Colab settings, suite selection, bounded-to-full progression, and troubleshooting, see [Running LightEval reliably](docs/LIGHTEVAL_README.md).
 
+For metric formulas, the meaning of accuracy/perplexity/generation diagnostics, result files, and comparison rules, see [Understanding evaluation results](docs/RESULTS_README.md).
+
 For replicated inference across several GPUs, large-model sharding, launch commands, and scheduler guidance, see [Multi-GPU evaluation](docs/MULTI_GPU_README.md).
 
 Version `0.1.1` is published on [PyPI](https://pypi.org/project/it-eval-framework/). GitHub installation remains available when testing unreleased commits.
@@ -61,6 +63,18 @@ The framework supports:
 - A single user-facing command: `it-eval evaluate --config model.yaml`
 - Package-owned presets: `quick`, `perplexity`, `verified_windows`, and explicitly unbounded `full`
 - A shared normalized metric-row schema across LightEval, BLiMP-IT, perplexity, and generation summaries
+
+## What runs by default
+
+| Entry point | Default behavior |
+|---|---|
+| Main Model Eval Colab | Bounded `smoke` teaching profile: LightEval quick (1 task × 2 examples), 20 BLiMP-IT pairs, 3 perplexity documents, and 3 generation prompts across all decoding profiles |
+| Colab Quickstart | Faster native smoke: LightEval off, 4 BLiMP-IT pairs, 3 perplexity documents, and 3 generation prompts |
+| `it-eval evaluate --model MODEL` / `evaluate(model=MODEL)` | Package `quick` preset: LightEval off, 20 BLiMP-IT pairs, 3 perplexity documents, and 3 generation prompts |
+| `configs/italian_base_quick.yaml` | Repository smoke config: LightEval off, 4 BLiMP-IT pairs, 3 perplexity documents, and 3 generation prompts |
+| `preset="full"` / `configs/italian_base_full.yaml` | Explicitly unbounded: all 39 evaluable Italian LightEval variants, all BLiMP-IT pairs, full clean-mC4 Italian validation subset, and all generation prompts/profiles |
+
+Defaults are integration checks, not publication measurements. The main notebook explains and exercises every component without starting the unbounded profile accidentally. The `full` path is opt-in because it can require substantial download, storage, and GPU time.
 
 ## Repository structure
 

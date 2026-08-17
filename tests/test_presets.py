@@ -15,7 +15,10 @@ def test_full_is_unbounded_and_quick_is_bounded():
     quick = build_evaluation_config("owner/model", preset="quick", device="cpu")
 
     assert full.lighteval.enabled is True
+    assert full.lighteval.suite == "all"
+    assert len(full.lighteval.task_aliases) == 39
     assert full.perplexity.max_documents is None
+    assert full.perplexity.dataset_subset == "full"
     assert full.perplexity.dataset_streaming is True
     assert quick.lighteval.enabled is False
     assert quick.perplexity.max_documents == 3

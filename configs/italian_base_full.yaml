@@ -18,7 +18,7 @@ runtime:
   num_processes: auto
 lighteval:
   enabled: true
-  suite: full
+  suite: all
   dataset_loading_processes: 1
 blimp_it:
   enabled: true
@@ -26,7 +26,7 @@ blimp_it:
 perplexity:
   enabled: true
   dataset_repo: "gsarti/clean_mc4_it"
-  dataset_subset: "tiny"
+  dataset_subset: "full"
   dataset_revision: "167d5696e91ac89f17936f9d0059031cbc4c9e99"
   dataset_trust_remote_code: true
   dataset_streaming: true

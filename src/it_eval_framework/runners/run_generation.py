@@ -108,7 +108,14 @@ def run(config_path: str):
             "schema_version": RESULT_SCHEMA_VERSION,
             "num_generations": len(rows),
             "normalized_metrics": [
-                metric_row("generation", "all", "num_generations", len(rows), sample_count=len(rows))
+                metric_row(
+                    "generation",
+                    "all",
+                    "num_generations",
+                    len(rows),
+                    sample_count=len(rows),
+                    higher_is_better=None,
+                )
             ],
         },
     )

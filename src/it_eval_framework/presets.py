@@ -54,7 +54,7 @@ def build_evaluation_config(
         "runtime": {"seed": 13},
         "lighteval": {
             "enabled": is_full or is_lighteval_only,
-            "suite": "full" if is_full else ("verified_windows" if is_lighteval_only else None),
+            "suite": "all" if is_full else ("verified_windows" if is_lighteval_only else None),
             "max_samples": None if is_full else 2,
             "dataset_loading_processes": 1,
         },
@@ -66,7 +66,7 @@ def build_evaluation_config(
         "perplexity": {
             "enabled": is_full or is_ppl_only or preset == "quick",
             "dataset_repo": "gsarti/clean_mc4_it",
-            "dataset_subset": perplexity_subset or "tiny",
+            "dataset_subset": perplexity_subset or ("full" if is_full else "tiny"),
             "dataset_revision": PPL_REVISION,
             "dataset_trust_remote_code": True,
             "dataset_streaming": True,

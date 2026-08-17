@@ -171,8 +171,22 @@ def run(config_path: str):
     )
     dataset_id = config.perplexity.dataset_repo or config.perplexity.dataset_path or "unknown"
     results["normalized_metrics"] = [
-        metric_row("perplexity", dataset_id, "token_perplexity", results["token_perplexity"], sample_count=total_tokens),
-        metric_row("perplexity", dataset_id, "mean_loss", results["mean_loss"], sample_count=total_tokens),
+        metric_row(
+            "perplexity",
+            dataset_id,
+            "token_perplexity",
+            results["token_perplexity"],
+            sample_count=total_tokens,
+            higher_is_better=False,
+        ),
+        metric_row(
+            "perplexity",
+            dataset_id,
+            "mean_loss",
+            results["mean_loss"],
+            sample_count=total_tokens,
+            higher_is_better=False,
+        ),
     ]
     write_json(run_dir / "perplexity_results.json", results)
     state.mark(

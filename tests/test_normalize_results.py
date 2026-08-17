@@ -23,6 +23,7 @@ def test_normalize_lighteval_results_pairs_values_and_stderr():
             "value": 0.5,
             "stderr": 0.1,
             "sample_count": None,
+            "higher_is_better": None,
         }
     ]
 
@@ -46,6 +47,7 @@ def test_normalize_preserves_subject_aggregate_and_nonzero_fewshot():
             "value": 0.5,
             "stderr": 0.05,
             "sample_count": None,
+            "higher_is_better": None,
         },
         {
             "component": "lighteval",
@@ -55,8 +57,26 @@ def test_normalize_preserves_subject_aggregate_and_nonzero_fewshot():
             "value": 0.25,
             "stderr": None,
             "sample_count": None,
+            "higher_is_better": None,
         },
     ]
+
+
+def test_normalize_adds_lighteval_denominator_and_direction():
+    raw = {
+        "results": {"xcopa_ita_cf|0": {"acc": 0.75}},
+        "config_tasks": {
+            "xcopa_ita_cf|0": {
+                "effective_num_docs": 20,
+                "metric": [{"metric_name": "acc", "higher_is_better": True}],
+            }
+        },
+    }
+
+    row = normalize_lighteval_results(raw)[0]
+
+    assert row["sample_count"] == 20
+    assert row["higher_is_better"] is True
 
 
 def test_aggregate_supports_legacy_benchmark_payload(tmp_path):

@@ -157,9 +157,23 @@ def run(config_path: str):
         },
     }
     results["normalized_metrics"] = [
-        metric_row("blimp_it", "all", "accuracy", results["overall_accuracy"], sample_count=total),
+        metric_row(
+            "blimp_it",
+            "all",
+            "accuracy",
+            results["overall_accuracy"],
+            sample_count=total,
+            higher_is_better=True,
+        ),
         *[
-            metric_row("blimp_it", name, "accuracy", values["accuracy"], sample_count=values["num_examples"])
+            metric_row(
+                "blimp_it",
+                name,
+                "accuracy",
+                values["accuracy"],
+                sample_count=values["num_examples"],
+                higher_is_better=True,
+            )
             for name, values in results["by_phenomenon"].items()
         ],
     ]
