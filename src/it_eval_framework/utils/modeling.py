@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import torch
+from huggingface_hub import hf_hub_download
+from huggingface_hub.utils import EntryNotFoundError
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from it_eval_framework.config import ModelConfig
@@ -16,13 +18,43 @@ DTYPE_MAP = {
 }
 
 
+def resolve_tokenizer_file(model_config: ModelConfig) -> str | None:
+    """Return an absolute tokenizer.json path when the tokenizer provides one.
+
+    Transformers 4.57.x can let a relative ``tokenizer_file`` value from
+    tokenizer_config.json override the absolute Hub cache path. Supplying the
+    resolved path explicitly avoids that upstream path-resolution bug.
+    """
+    if not model_config.tokenizer_use_fast:
+        return None
+
+    tokenizer_id = model_config.tokenizer_id
+    local_source = Path(tokenizer_id)
+    if local_source.exists():
+        candidate = local_source / "tokenizer.json" if local_source.is_dir() else local_source
+        return str(candidate.resolve()) if candidate.is_file() else None
+
+    try:
+        return hf_hub_download(
+            repo_id=tokenizer_id,
+            filename="tokenizer.json",
+            revision=model_config.tokenizer_revision,
+        )
+    except EntryNotFoundError:
+        # Slow-tokenizer repositories may legitimately omit tokenizer.json.
+        return None
+
+
 def load_tokenizer(model_config: ModelConfig):
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_config.tokenizer_id,
-        revision=model_config.tokenizer_revision,
-        trust_remote_code=model_config.trust_remote_code,
-        use_fast=model_config.tokenizer_use_fast,
-    )
+    kwargs = {
+        "revision": model_config.tokenizer_revision,
+        "trust_remote_code": model_config.trust_remote_code,
+        "use_fast": model_config.tokenizer_use_fast,
+    }
+    tokenizer_file = resolve_tokenizer_file(model_config)
+    if tokenizer_file:
+        kwargs["tokenizer_file"] = tokenizer_file
+    tokenizer = AutoTokenizer.from_pretrained(model_config.tokenizer_id, **kwargs)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     return tokenizer
