@@ -10,6 +10,7 @@ def test_quick_config_loads():
     assert config.lighteval.task_aliases == ["squad_it.default"]
     assert config.perplexity.dataset_repo == "gsarti/clean_mc4_it"
     assert config.perplexity.dataset_subset == "tiny"
+    assert config.perplexity.dataset_streaming is True
     assert config.model.revision == config.model.tokenizer_revision
     assert len(config.perplexity.dataset_revision) == 40
 

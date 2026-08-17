@@ -66,7 +66,7 @@ def build_evaluation_config(
             "dataset_subset": "tiny",
             "dataset_revision": PPL_REVISION,
             "dataset_trust_remote_code": True,
-            "dataset_streaming": not is_full,
+            "dataset_streaming": True,
             "split": "validation",
             "text_field": "text",
             "sequence_length": 1024 if is_full else 512,

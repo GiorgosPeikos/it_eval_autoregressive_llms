@@ -16,6 +16,7 @@ def test_full_is_unbounded_and_quick_is_bounded():
 
     assert full.lighteval.enabled is True
     assert full.perplexity.max_documents is None
+    assert full.perplexity.dataset_streaming is True
     assert quick.lighteval.enabled is False
     assert quick.perplexity.max_documents == 3
     assert Path(quick.generation.prompts_path).exists()

@@ -106,6 +106,26 @@ print(run_dir)
 
 Do not begin with `full`. First prove that `quick` works, then choose the components and limits appropriate to the research question.
 
+### Controlling remote perplexity corpus size
+
+Remote perplexity datasets stream by default. Streaming avoids materializing unused
+splits and lets `max_documents` stop both download and evaluation work early. Use a
+fixed document budget for portable, reproducible comparisons; set it to `null` only
+when you intend to score the complete configured split.
+
+```yaml
+perplexity:
+  dataset_streaming: true
+  max_documents: 1000       # null means the complete selected split
+  max_tokens_per_document: 2048
+```
+
+Dataset subsets are repository-specific. For `gsarti/clean_mc4_it`, the validation
+shards represented by `tiny`, `small`, `medium`, `large`, and `full` are respectively
+1/8, 1/4, 1/2, 3/4, and the complete validation corpus. A fixed `max_documents` budget
+is generally preferable to a fraction because it controls runtime across datasets
+without first scanning the complete corpus.
+
 ## Installing LightEval support
 
 The pinned Italian LightEval path requires a resolver-managed installation because LightEval's declared `datasets` requirement conflicts with task scripts that still require `datasets==3.6.0`.

@@ -66,6 +66,7 @@ def run(config_path: str):
     per_document = []
     total_nll = 0.0
     total_tokens = 0
+    documents_scored = 0
 
     for index, row in enumerate(dataset):
         text = row[config.perplexity.text_field]
@@ -102,6 +103,8 @@ def run(config_path: str):
 
         total_nll += doc_nll
         total_tokens += doc_tokens
+        if doc_tokens:
+            documents_scored += 1
         if config.perplexity.per_document_stats:
             per_document.append(
                 {
@@ -125,6 +128,7 @@ def run(config_path: str):
             "text_field": config.perplexity.text_field,
             "dataset_metadata": dataset_metadata,
             "max_documents": config.perplexity.max_documents,
+            "documents_scored": documents_scored,
             "max_tokens_per_document": config.perplexity.max_tokens_per_document,
             "sequence_length": config.perplexity.sequence_length,
             "stride": config.perplexity.stride,
@@ -141,8 +145,17 @@ def run(config_path: str):
         metric_row("perplexity", dataset_id, "mean_loss", results["mean_loss"], sample_count=total_tokens),
     ]
     write_json(run_dir / "perplexity_results.json", results)
-    state.mark("perplexity", "completed", total_token_count=total_tokens)
-    mark_finished(run_dir, "perplexity", {"total_token_count": total_tokens})
+    state.mark(
+        "perplexity",
+        "completed",
+        documents_scored=documents_scored,
+        total_token_count=total_tokens,
+    )
+    mark_finished(
+        run_dir,
+        "perplexity",
+        {"documents_scored": documents_scored, "total_token_count": total_tokens},
+    )
     return run_dir
 
 

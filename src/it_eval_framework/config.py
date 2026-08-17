@@ -70,7 +70,7 @@ class PerplexityConfig(BaseModel):
     dataset_subset: str | None = None
     dataset_revision: str | None = None
     dataset_trust_remote_code: bool = False
-    dataset_streaming: bool = False
+    dataset_streaming: bool = True
     split: str | None = None
     text_field: str = "text"
     sequence_length: int = 1024
