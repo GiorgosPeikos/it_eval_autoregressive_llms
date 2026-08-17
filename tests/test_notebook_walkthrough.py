@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import re
 
 
 NOTEBOOK = Path("notebooks/colab_model_eval_template.ipynb")
@@ -103,3 +104,20 @@ def test_notebooks_launch_with_the_running_kernel_interpreter():
         assert "sys.executable" in source
         assert "it_eval_framework.runners.launch" in source
         assert "!it-eval-launch" not in source
+
+
+def test_every_notebook_setting_has_adjacent_documentation():
+    assignment = re.compile(r"^[A-Z][A-Z0-9_]*\s*=")
+    for notebook_path in (NOTEBOOK, QUICKSTART_NOTEBOOK):
+        notebook = json.loads(notebook_path.read_text(encoding="utf-8"))
+        settings = next(
+            cell for cell in notebook["cells"] if cell.get("metadata", {}).get("id") == "settings"
+        )
+        lines = _source(settings).splitlines()
+        for index, line in enumerate(lines):
+            if not assignment.match(line):
+                continue
+            preceding = "\n".join(lines[max(0, index - 2):index])
+            assert "#" in line or "#" in preceding, (
+                f"{notebook_path}: undocumented setting on line {index + 1}: {line}"
+            )
