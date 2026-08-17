@@ -121,3 +121,16 @@ def test_every_notebook_setting_has_adjacent_documentation():
             assert "#" in line or "#" in preceding, (
                 f"{notebook_path}: undocumented setting on line {index + 1}: {line}"
             )
+
+
+def test_notebooks_disambiguate_full_and_all_lighteval_suites():
+    for notebook_path in (NOTEBOOK, QUICKSTART_NOTEBOOK):
+        notebook = json.loads(notebook_path.read_text(encoding="utf-8"))
+        settings = next(
+            cell for cell in notebook["cells"] if cell.get("metadata", {}).get("id") == "settings"
+        )
+        source = _source(settings)
+
+        assert "full=33 curated" in source or "full = 33 curated" in source
+        assert "all=all 39" in source or "all = all 39" in source
+        assert "not exhaustive" in source.lower()
