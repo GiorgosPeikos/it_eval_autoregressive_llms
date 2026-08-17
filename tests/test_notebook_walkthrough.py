@@ -87,3 +87,18 @@ def test_notebooks_install_into_the_running_kernel_without_editable_hooks():
         assert 'pip_install(".", "--no-deps", "--force-reinstall")' in source
         assert "import it_eval_framework" in source
         assert "pip install -e" not in source
+
+
+def test_notebooks_launch_with_the_running_kernel_interpreter():
+    for notebook_path in (NOTEBOOK, QUICKSTART_NOTEBOOK):
+        notebook = json.loads(notebook_path.read_text(encoding="utf-8"))
+        run_cell = next(
+            cell
+            for cell in notebook["cells"]
+            if cell.get("metadata", {}).get("id") in {"run", "run-all"}
+        )
+        source = _source(run_cell)
+
+        assert "sys.executable" in source
+        assert "it_eval_framework.runners.launch" in source
+        assert "!it-eval-launch" not in source
