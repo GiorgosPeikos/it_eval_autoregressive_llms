@@ -20,3 +20,18 @@ def test_full_is_unbounded_and_quick_is_bounded():
     assert quick.lighteval.enabled is False
     assert quick.perplexity.max_documents == 3
     assert Path(quick.generation.prompts_path).exists()
+
+
+def test_perplexity_budget_overrides_preset_defaults():
+    config = build_evaluation_config(
+        "owner/model",
+        preset="quick",
+        device="cpu",
+        perplexity_subset="medium",
+        perplexity_max_documents=100,
+        perplexity_max_tokens_per_document=512,
+    )
+
+    assert config.perplexity.dataset_subset == "medium"
+    assert config.perplexity.max_documents == 100
+    assert config.perplexity.max_tokens_per_document == 512

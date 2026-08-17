@@ -26,6 +26,9 @@ def build_evaluation_config(
     output_dir: str | Path = "evaluation_results",
     run_name: str | None = None,
     artifact_sha256: str | None = None,
+    perplexity_subset: str | None = None,
+    perplexity_max_documents: int | None = None,
+    perplexity_max_tokens_per_document: int | None = None,
 ) -> EvaluationConfig:
     if preset not in PRESET_NAMES:
         raise ValueError(f"Unknown preset {preset!r}. Choose from: {', '.join(PRESET_NAMES)}")
@@ -63,7 +66,7 @@ def build_evaluation_config(
         "perplexity": {
             "enabled": is_full or is_ppl_only or preset == "quick",
             "dataset_repo": "gsarti/clean_mc4_it",
-            "dataset_subset": "tiny",
+            "dataset_subset": perplexity_subset or "tiny",
             "dataset_revision": PPL_REVISION,
             "dataset_trust_remote_code": True,
             "dataset_streaming": True,
@@ -71,8 +74,16 @@ def build_evaluation_config(
             "text_field": "text",
             "sequence_length": 1024 if is_full else 512,
             "stride": 512 if is_full else 256,
-            "max_documents": None if is_full else 3,
-            "max_tokens_per_document": None if is_full else 256,
+            "max_documents": (
+                perplexity_max_documents
+                if perplexity_max_documents is not None
+                else (None if is_full else 3)
+            ),
+            "max_tokens_per_document": (
+                perplexity_max_tokens_per_document
+                if perplexity_max_tokens_per_document is not None
+                else (None if is_full else 256)
+            ),
         },
         "generation": {
             "enabled": is_full or (not is_ppl_only and not is_lighteval_only),

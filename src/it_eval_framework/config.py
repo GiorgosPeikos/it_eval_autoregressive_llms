@@ -79,8 +79,8 @@ class PerplexityConfig(BaseModel):
     add_bos_token: bool = True
     add_eos_token: bool = False
     per_document_stats: bool = True
-    max_documents: int | None = None
-    max_tokens_per_document: int | None = None
+    max_documents: int | None = Field(default=None, gt=0)
+    max_tokens_per_document: int | None = Field(default=None, gt=0)
     contamination_warning: str = (
         "Held-out perplexity is only comparable when the evaluation corpus is document-wise or temporally "
         "separated from training data."

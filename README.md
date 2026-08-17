@@ -167,6 +167,32 @@ The smoke config pins both the tiny model and Italian dataset to immutable Huggi
 The default quick config currently skips LightEval. Its default perplexity example is Italian-only and uses the validation split of `gsarti/clean_mc4_it` rather than an English convenience corpus.
 It limits evaluation to three documents and 256 tokens per document; remove or increase these limits for a real measurement.
 
+Perplexity corpus size is available directly from both the CLI and Python API:
+
+```bash
+it-eval evaluate --model my-org/my-model --preset quick \
+  --perplexity-subset small \
+  --perplexity-max-documents 1000 \
+  --perplexity-max-tokens-per-document 2048
+```
+
+```python
+from it_eval_framework import evaluate
+
+evaluate(
+    model="my-org/my-model",
+    preset="quick",
+    perplexity_subset="small",
+    perplexity_max_documents=1000,
+    perplexity_max_tokens_per_document=2048,
+)
+```
+
+For `clean_mc4_it`, `tiny`, `small`, `medium`, `large`, and `full` select
+1/8, 1/4, 1/2, 3/4, and all validation shards. Remote corpora stream by
+default, and every resolved budget is retained in the run configuration and
+perplexity result metadata.
+
 Run the full suite:
 
 ```bash

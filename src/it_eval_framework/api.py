@@ -30,6 +30,9 @@ def evaluate(
     batch_size: int = 1,
     output_dir: str | Path = "evaluation_results",
     artifact_sha256: str | None = None,
+    perplexity_subset: str | None = None,
+    perplexity_max_documents: int | None = None,
+    perplexity_max_tokens_per_document: int | None = None,
 ) -> Path:
     """Run an evaluation through the supported public Python API.
 
@@ -52,6 +55,9 @@ def evaluate(
             batch_size=batch_size,
             output_dir=output_dir,
             artifact_sha256=artifact_sha256,
+            perplexity_subset=perplexity_subset,
+            perplexity_max_documents=perplexity_max_documents,
+            perplexity_max_tokens_per_document=perplexity_max_tokens_per_document,
         )
     if isinstance(config, (str, Path)):
         return run_all(str(config))

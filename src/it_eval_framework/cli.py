@@ -25,6 +25,20 @@ def build_parser() -> argparse.ArgumentParser:
     evaluate_parser.add_argument("--batch-size", type=int, default=1)
     evaluate_parser.add_argument("--output-dir", default="evaluation_results")
     evaluate_parser.add_argument("--artifact-sha256", help="Digest for an archived local checkpoint.")
+    evaluate_parser.add_argument(
+        "--perplexity-subset",
+        help="Dataset configuration/subset, for example tiny, small, medium, large, or full for clean_mc4_it.",
+    )
+    evaluate_parser.add_argument(
+        "--perplexity-max-documents",
+        type=int,
+        help="Maximum streamed documents to score; omit to use the selected preset's default.",
+    )
+    evaluate_parser.add_argument(
+        "--perplexity-max-tokens-per-document",
+        type=int,
+        help="Maximum tokens scored from each document; omit to use the selected preset's default.",
+    )
     return parser
 
 
@@ -45,6 +59,9 @@ def main() -> None:
                 batch_size=args.batch_size,
                 output_dir=args.output_dir,
                 artifact_sha256=args.artifact_sha256,
+                perplexity_subset=args.perplexity_subset,
+                perplexity_max_documents=args.perplexity_max_documents,
+                perplexity_max_tokens_per_document=args.perplexity_max_tokens_per_document,
             )
         print(run_dir)
 
