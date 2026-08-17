@@ -164,7 +164,7 @@ python -m it_eval_framework.runners.run_perplexity --config configs/italian_perp
 This verifies the model/corpus/perplexity pipeline; its score is not statistically meaningful.
 The smoke config pins both the tiny model and Italian dataset to immutable Hugging Face commit hashes.
 
-The default quick config currently skips LightEval. Its default perplexity example is Italian-only and uses the validation split of `gsarti/clean_mc4_it` rather than an English convenience corpus.
+The default quick config evaluates `Gpeik/Sophira-360M-base` and currently skips LightEval. Its default perplexity example is Italian-only and uses the validation split of `gsarti/clean_mc4_it` rather than an English convenience corpus.
 It limits evaluation to three documents and 256 tokens per document; remove or increase these limits for a real measurement.
 
 Perplexity corpus size is available directly from both the CLI and Python API:

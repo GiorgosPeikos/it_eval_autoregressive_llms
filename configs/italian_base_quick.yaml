@@ -1,9 +1,9 @@
 run_name: italian_base_quick
 model:
-  source: "sshleifer/tiny-gpt2"
-  tokenizer_source: "sshleifer/tiny-gpt2"
-  revision: "5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be"
-  tokenizer_revision: "5f91d94bd9cd7190a9f3216ff93cd1dd95f2c7be"
+  source: "Gpeik/Sophira-360M-base"
+  tokenizer_source: "Gpeik/Sophira-360M-base"
+  revision: "bb760ac5c767ca27308e9df0725950f619f2a411"
+  tokenizer_revision: "bb760ac5c767ca27308e9df0725950f619f2a411"
   dtype: auto
   device: cpu
   batch_size: 1

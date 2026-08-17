@@ -5,7 +5,7 @@ from it_eval_framework.config import discover_evaluation_configs, load_config
 
 def test_quick_config_loads():
     config = load_config(Path("configs/italian_base_quick.yaml"))
-    assert config.model.source == "sshleifer/tiny-gpt2"
+    assert config.model.source == "Gpeik/Sophira-360M-base"
     assert config.lighteval.enabled is False
     assert config.lighteval.task_aliases == ["squad_it.default"]
     assert config.perplexity.dataset_repo == "gsarti/clean_mc4_it"
