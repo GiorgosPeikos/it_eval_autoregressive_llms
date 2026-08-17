@@ -5,7 +5,7 @@ model:
   revision: "bb760ac5c767ca27308e9df0725950f619f2a411"
   tokenizer_revision: "bb760ac5c767ca27308e9df0725950f619f2a411"
   dtype: auto
-  device: cpu
+  device: auto
   batch_size: 1
 output:
   root_dir: evaluation_results
@@ -15,6 +15,8 @@ runtime:
   seed: 13
   python_executable: "python"
   lighteval_command: "lighteval"
+  parallelism: auto
+  num_processes: auto
 lighteval:
   enabled: false
   suite: quick

@@ -13,6 +13,8 @@ output:
   save_details: false
 runtime:
   seed: 13
+  parallelism: auto
+  num_processes: auto
 lighteval:
   enabled: false
   suite: null

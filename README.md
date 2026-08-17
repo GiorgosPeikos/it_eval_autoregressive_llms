@@ -40,6 +40,8 @@ Clone the repository and use the pinned development installation described below
 
 For model revisions, local checkpoints, preset selection, LightEval installation, result interpretation, and archival guidance, see [Evaluate your Italian language model](docs/USER_GUIDE.md).
 
+For replicated inference across several GPUs, large-model sharding, launch commands, and scheduler guidance, see [Multi-GPU evaluation](docs/MULTI_GPU_README.md).
+
 Version `0.1.1` is published on [PyPI](https://pypi.org/project/it-eval-framework/). GitHub installation remains available when testing unreleased commits.
 
 ## Scope
@@ -51,6 +53,7 @@ The framework supports:
 - Perplexity evaluation on local files or Hugging Face datasets
 - Controlled generation with configurable decoding profiles and diagnostics
 - Stable run directories, resumable step state, environment capture, and machine-readable outputs
+- Replicated multi-GPU inference for BLiMP-IT, perplexity, and controlled generation
 - Aggregation and checkpoint comparison utilities
 - A supported Python entry point: `from it_eval_framework import evaluate`
 - A single user-facing command: `it-eval evaluate --config model.yaml`

@@ -7,12 +7,13 @@ from typing import Iterable
 
 from datasets import load_dataset
 
-from it_eval_framework.config import load_config
 from it_eval_framework.metrics.perplexity import compute_window_nll, finalize_perplexity, sliding_windows
 from it_eval_framework.reporting.normalize_results import RESULT_SCHEMA_VERSION, metric_row
-from it_eval_framework.runners.common import mark_finished, mark_started, prepare_run
+from it_eval_framework.runners.common import load_runner_config, mark_finished, mark_started, prepare_run
 from it_eval_framework.utils.io import write_json
 from it_eval_framework.utils.modeling import load_model, load_tokenizer
+from it_eval_framework.utils.distributed import flatten_gathered, initialize_distributed, local_model_config
+from it_eval_framework.utils.modeling import model_input_device
 
 
 def load_text_dataset(config) -> Iterable[dict]:
@@ -33,18 +34,22 @@ def load_text_dataset(config) -> Iterable[dict]:
 
 
 def run(config_path: str):
-    config = load_config(config_path, resolve_revisions=True)
+    config = load_runner_config(config_path)
     if not config.perplexity or not config.perplexity.enabled:
         raise ValueError("Perplexity is disabled in this config.")
 
     run_dir, state = prepare_run(config)
+    context = initialize_distributed(config.runtime.parallelism, config.model.device)
     if state.is_complete("perplexity") and not config.output.overwrite:
         return run_dir
 
     mark_started(run_dir, "perplexity")
-    state.mark("perplexity", "running")
-    model = load_model(config.model)
-    tokenizer = load_tokenizer(config.model)
+    if context.is_main:
+        state.mark("perplexity", "running")
+    model_config = local_model_config(config.model, context)
+    model = load_model(model_config)
+    tokenizer = load_tokenizer(model_config)
+    input_device = model_input_device(model, model_config.device)
     dataset = load_text_dataset(config)
     try:
         num_rows_before_limit = len(dataset)
@@ -69,6 +74,8 @@ def run(config_path: str):
     documents_scored = 0
 
     for index, row in enumerate(dataset):
+        if not context.owns(index):
+            continue
         text = row[config.perplexity.text_field]
         if not isinstance(text, str) or not text.strip():
             continue
@@ -92,7 +99,7 @@ def run(config_path: str):
                 input_ids,
                 start,
                 end,
-                device=config.model.device,
+                device=input_device,
                 target_start=previous_end,
             )
             doc_nll += stat.negative_log_likelihood
@@ -114,6 +121,22 @@ def run(config_path: str):
                 }
             )
 
+    gathered = context.gather(
+        {
+            "total_nll": total_nll,
+            "total_tokens": total_tokens,
+            "documents_scored": documents_scored,
+            "per_document": per_document,
+        }
+    )
+    if not context.is_main:
+        context.barrier()
+        return run_dir
+    total_nll = sum(part["total_nll"] for part in gathered)
+    total_tokens = sum(part["total_tokens"] for part in gathered)
+    documents_scored = sum(part["documents_scored"] for part in gathered)
+    per_document = flatten_gathered([part["per_document"] for part in gathered])
+    per_document.sort(key=lambda item: item["document_index"])
     results = finalize_perplexity(total_nll, total_tokens)
     results.update(
         {
@@ -156,6 +179,7 @@ def run(config_path: str):
         "perplexity",
         {"documents_scored": documents_scored, "total_token_count": total_tokens},
     )
+    context.barrier()
     return run_dir
 
 

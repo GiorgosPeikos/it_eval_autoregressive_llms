@@ -18,6 +18,14 @@ class ModelConfig(BaseModel):
     tokenizer_use_fast: bool = True
     dtype: Literal["auto", "float32", "float16", "bfloat16"] = "auto"
     device: str = "cpu"
+    device_map: str | dict[str, str | int] | None = Field(
+        default=None,
+        description="Transformers device map, for example 'auto' to shard a large model.",
+    )
+    max_memory: dict[int | str, str | int] | None = Field(
+        default=None,
+        description="Optional per-device memory limits used with model.device_map.",
+    )
     batch_size: int = 1
     max_model_length: int | None = None
     artifact_sha256: str | None = Field(default=None, description="User-supplied digest for a local model artifact.")
@@ -127,6 +135,14 @@ class RuntimeConfig(BaseModel):
     seed: int = 13
     python_executable: str = "python"
     lighteval_command: str = "lighteval"
+    parallelism: Literal["auto", "single", "data_parallel", "model_parallel"] = "auto"
+    num_processes: int | Literal["auto"] = "auto"
+
+    @model_validator(mode="after")
+    def validate_num_processes(self) -> "RuntimeConfig":
+        if isinstance(self.num_processes, int) and self.num_processes < 1:
+            raise ValueError("runtime.num_processes must be 'auto' or a positive integer.")
+        return self
 
 
 class EvaluationConfig(BaseModel):
@@ -138,6 +154,14 @@ class EvaluationConfig(BaseModel):
     blimp_it: BliMPITConfig = Field(default_factory=BliMPITConfig)
     perplexity: PerplexityConfig | None = None
     generation: GenerationConfig = Field(default_factory=GenerationConfig)
+
+    @model_validator(mode="after")
+    def validate_parallelism(self) -> "EvaluationConfig":
+        if self.runtime.parallelism == "data_parallel" and self.model.device_map is not None:
+            raise ValueError("Replicated data parallelism cannot be combined with model.device_map.")
+        if self.runtime.parallelism == "model_parallel" and self.model.device_map is None:
+            self.model.device_map = "auto"
+        return self
 
 
 def load_yaml(path: str | Path) -> dict:

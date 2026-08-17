@@ -79,19 +79,39 @@ def load_model(model_config: ModelConfig):
         "revision": model_config.revision,
         "trust_remote_code": model_config.trust_remote_code,
     }
+    if model_config.device_map is not None:
+        kwargs["device_map"] = model_config.device_map
+    if model_config.max_memory is not None:
+        kwargs["max_memory"] = model_config.max_memory
     if torch_dtype != "auto":
         kwargs["torch_dtype"] = torch_dtype
     print(
-        f"[model] Loading model '{model_config.source}' with dtype={model_config.dtype} on device={model_config.device}",
+        f"[model] Loading model '{model_config.source}' with dtype={model_config.dtype} "
+        f"on device={model_config.device}, device_map={model_config.device_map}",
         flush=True,
     )
     model = AutoModelForCausalLM.from_pretrained(model_config.source, **kwargs)
     model.eval()
-    if model_config.device not in {"auto", "cpu"}:
-        model.to(model_config.device)
+    if model_config.device_map is None:
+        target_device = model_config.device
+        if target_device == "auto":
+            target_device = "cuda" if torch.cuda.is_available() else "cpu"
+        if target_device != "cpu":
+            model.to(target_device)
     resolved_device = next(model.parameters()).device
     print(f"[model] Model ready on device={resolved_device}", flush=True)
     return model
+
+
+def model_input_device(model, fallback: str = "cpu") -> str:
+    """Return the device that should receive input IDs, including sharded models."""
+    try:
+        return str(model.get_input_embeddings().weight.device)
+    except (AttributeError, StopIteration):
+        try:
+            return str(next(model.parameters()).device)
+        except StopIteration:
+            return fallback
 
 
 def summarize_model_source(source: str) -> tuple[str, str]:

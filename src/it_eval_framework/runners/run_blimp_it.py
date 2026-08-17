@@ -5,12 +5,12 @@ from collections import defaultdict
 
 from datasets import get_dataset_config_names, load_dataset
 
-from it_eval_framework.config import load_config
 from it_eval_framework.metrics.minimal_pairs import choose_preferred, score_full_sequence
 from it_eval_framework.reporting.normalize_results import RESULT_SCHEMA_VERSION, metric_row
-from it_eval_framework.runners.common import mark_finished, mark_started, prepare_run
+from it_eval_framework.runners.common import load_runner_config, mark_finished, mark_started, prepare_run
 from it_eval_framework.utils.io import write_json, write_jsonl
-from it_eval_framework.utils.modeling import load_model, load_tokenizer
+from it_eval_framework.utils.modeling import load_model, load_tokenizer, model_input_device
+from it_eval_framework.utils.distributed import flatten_gathered, initialize_distributed, local_model_config
 
 
 def select_fields(example: dict, config) -> tuple[str, str]:
@@ -26,18 +26,22 @@ def select_fields(example: dict, config) -> tuple[str, str]:
 
 
 def run(config_path: str):
-    config = load_config(config_path, resolve_revisions=True)
+    config = load_runner_config(config_path)
     if not config.blimp_it.enabled:
         raise ValueError("BLiMP-IT is disabled in this config.")
 
     run_dir, state = prepare_run(config)
+    context = initialize_distributed(config.runtime.parallelism, config.model.device)
     if state.is_complete("blimp_it") and not config.output.overwrite:
         return run_dir
 
     mark_started(run_dir, "blimp_it")
-    state.mark("blimp_it", "running")
-    model = load_model(config.model)
-    tokenizer = load_tokenizer(config.model)
+    if context.is_main:
+        state.mark("blimp_it", "running")
+    model_config = local_model_config(config.model, context)
+    model = load_model(model_config)
+    tokenizer = load_tokenizer(model_config)
+    input_device = model_input_device(model, model_config.device)
     rows = []
     grouped = defaultdict(lambda: {"correct": 0, "total": 0})
     correct = 0
@@ -48,6 +52,7 @@ def run(config_path: str):
         else get_dataset_config_names(config.blimp_it.dataset_repo, revision=config.blimp_it.dataset_revision)
     )
     remaining = config.blimp_it.max_samples
+    global_index = 0
     dataset_metadata = []
 
     for subset in subsets:
@@ -72,10 +77,18 @@ def run(config_path: str):
             dataset = dataset.select(range(min(len(dataset), remaining)))
 
         for index, example in enumerate(dataset):
+            owned = context.owns(global_index)
+            global_index += 1
+            if remaining is not None:
+                remaining -= 1
+            if not owned:
+                if remaining is not None and remaining <= 0:
+                    break
+                continue
             good_text, bad_text = select_fields(example, config)
             phenomenon = example.get(config.blimp_it.phenomenon_field, subset or "unknown")
-            good_score = score_full_sequence(model, tokenizer, good_text, device=config.model.device)
-            bad_score = score_full_sequence(model, tokenizer, bad_text, device=config.model.device)
+            good_score = score_full_sequence(model, tokenizer, good_text, device=input_device)
+            bad_score = score_full_sequence(model, tokenizer, bad_text, device=input_device)
             prediction = choose_preferred(good_score, bad_score, normalization="raw")
             is_correct = prediction == 0
             correct += int(is_correct)
@@ -98,10 +111,22 @@ def run(config_path: str):
                     "correct": is_correct,
                 }
             )
-            if remaining is not None:
-                remaining -= 1
-                if remaining <= 0:
-                    break
+            if remaining is not None and remaining <= 0:
+                break
+
+    gathered = context.gather({"rows": rows, "correct": correct, "total": total, "grouped": dict(grouped)})
+    if not context.is_main:
+        context.barrier()
+        return run_dir
+    rows = flatten_gathered([[*part["rows"]] for part in gathered])
+    rows.sort(key=lambda row: (str(row["subset"]), row["index"]))
+    correct = sum(part["correct"] for part in gathered)
+    total = sum(part["total"] for part in gathered)
+    grouped = defaultdict(lambda: {"correct": 0, "total": 0})
+    for part in gathered:
+        for name, values in part["grouped"].items():
+            grouped[name]["correct"] += values["correct"]
+            grouped[name]["total"] += values["total"]
 
     results = {
         "schema_version": RESULT_SCHEMA_VERSION,
@@ -130,6 +155,7 @@ def run(config_path: str):
     write_jsonl(run_dir / "blimp_it_samples.jsonl", rows)
     state.mark("blimp_it", "completed", num_examples=total)
     mark_finished(run_dir, "blimp_it", {"num_examples": total})
+    context.barrier()
     return run_dir
 
 

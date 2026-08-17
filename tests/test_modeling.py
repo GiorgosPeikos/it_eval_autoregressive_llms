@@ -15,6 +15,24 @@ class FakeBatch(dict):
         return self
 
 
+class FakeParameter:
+    device = "cpu"
+
+
+class FakeModel:
+    def __init__(self):
+        self.moved_to = None
+
+    def eval(self):
+        return self
+
+    def to(self, device):
+        self.moved_to = device
+
+    def parameters(self):
+        yield FakeParameter()
+
+
 def test_load_tokenizer_passes_resolved_hub_tokenizer_file(monkeypatch):
     observed = {}
     cached_file = "/cache/snapshot/tokenizer.json"
@@ -81,3 +99,34 @@ def test_prepare_generation_inputs_removes_decoder_unused_segment_ids():
     }
     assert "token_type_ids" not in encoded
     assert encoded["observed_device"] == "cuda"
+
+
+def test_load_model_passes_device_map_without_calling_to(monkeypatch):
+    observed = {}
+    fake_model = FakeModel()
+
+    def fake_from_pretrained(source, **kwargs):
+        observed["source"] = source
+        observed["kwargs"] = kwargs
+        return fake_model
+
+    monkeypatch.setattr(modeling.AutoModelForCausalLM, "from_pretrained", fake_from_pretrained)
+
+    result = modeling.load_model(
+        ModelConfig(source="owner/large-model", device="auto", device_map="auto", max_memory={0: "20GiB"})
+    )
+
+    assert result is fake_model
+    assert observed["kwargs"]["device_map"] == "auto"
+    assert observed["kwargs"]["max_memory"] == {0: "20GiB"}
+    assert fake_model.moved_to is None
+
+
+def test_load_model_auto_selects_cuda_when_available(monkeypatch):
+    fake_model = FakeModel()
+    monkeypatch.setattr(modeling.AutoModelForCausalLM, "from_pretrained", lambda *args, **kwargs: fake_model)
+    monkeypatch.setattr(modeling.torch.cuda, "is_available", lambda: True)
+
+    modeling.load_model(ModelConfig(source="owner/model", device="auto"))
+
+    assert fake_model.moved_to == "cuda"

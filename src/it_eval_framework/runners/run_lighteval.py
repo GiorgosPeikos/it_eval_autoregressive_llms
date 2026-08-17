@@ -7,12 +7,12 @@ import subprocess
 import sys
 from pathlib import Path
 
-from it_eval_framework.config import load_config
 from it_eval_framework.reporting.normalize_results import RESULT_SCHEMA_VERSION, normalize_lighteval_results
-from it_eval_framework.runners.common import mark_finished, mark_started, prepare_run
+from it_eval_framework.runners.common import load_runner_config, mark_finished, mark_started, prepare_run
 from it_eval_framework.task_registry import LIGHTEVAL_VERSION, resolve_task_aliases
 from it_eval_framework.utils.io import read_json, write_json
 from it_eval_framework.utils.env import huggingface_dataset_revisions
+from it_eval_framework.utils.distributed import initialize_distributed
 
 
 def apply_windows_hf_cache_overrides(env: dict[str, str]) -> None:
@@ -39,6 +39,8 @@ def build_model_args(config) -> str:
     }
     if config.model.max_model_length:
         items["max_length"] = config.model.max_model_length
+    if config.model.device_map is not None:
+        items["model_parallel"] = "true"
     return ",".join(f"{key}={value}" for key, value in items.items() if value is not None)
 
 
@@ -48,12 +50,16 @@ def latest_results_json(output_dir: Path) -> Path | None:
 
 
 def run(config_path: str) -> Path:
-    config = load_config(config_path, resolve_revisions=True)
+    config = load_runner_config(config_path)
     if not config.lighteval.enabled:
         raise ValueError("LightEval is disabled in this config.")
 
     run_dir, state = prepare_run(config)
+    context = initialize_distributed(config.runtime.parallelism, config.model.device)
     if state.is_complete("lighteval") and not config.output.overwrite:
+        return run_dir
+    if not context.is_main:
+        context.barrier()
         return run_dir
 
     task_names = resolve_task_aliases(config.lighteval.task_aliases)
@@ -86,6 +92,10 @@ def run(config_path: str) -> Path:
     command.extend(config.lighteval.extra_args)
 
     env = os.environ.copy()
+    # LightEval is a child evaluation backend, not a member of our torchrun
+    # group. Prevent it from trying to join the parent's process group.
+    for name in ("RANK", "WORLD_SIZE", "LOCAL_RANK", "LOCAL_WORLD_SIZE", "MASTER_ADDR", "MASTER_PORT"):
+        env.pop(name, None)
     env.setdefault("HF_DATASETS_TRUST_REMOTE_CODE", "1")
     env.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
     apply_windows_hf_cache_overrides(env)
@@ -147,6 +157,7 @@ def run(config_path: str) -> Path:
     write_json(run_dir / "benchmark_results.json", benchmark_payload)
     state.mark("lighteval", "completed", results_file=str(raw_results_path))
     mark_finished(run_dir, "lighteval", {"resolved_tasks": task_names})
+    context.barrier()
     return run_dir
 
 

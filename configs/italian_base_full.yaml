@@ -4,7 +4,7 @@ model:
   revision: "4e20de362430cd3b72f300e6b0f18e50e7166e08"
   tokenizer_revision: "4e20de362430cd3b72f300e6b0f18e50e7166e08"
   dtype: auto
-  device: cpu
+  device: auto
   batch_size: 1
 output:
   root_dir: evaluation_results
@@ -14,6 +14,8 @@ runtime:
   seed: 13
   python_executable: "python"
   lighteval_command: "lighteval"
+  parallelism: auto
+  num_processes: auto
 lighteval:
   enabled: true
   suite: full
