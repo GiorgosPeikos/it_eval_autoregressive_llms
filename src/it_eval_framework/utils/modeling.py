@@ -5,7 +5,7 @@ from pathlib import Path
 import torch
 from huggingface_hub import hf_hub_download
 from huggingface_hub.utils import EntryNotFoundError
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedTokenizerFast
 
 from it_eval_framework.config import ModelConfig
 
@@ -54,7 +54,30 @@ def load_tokenizer(model_config: ModelConfig):
     tokenizer_file = resolve_tokenizer_file(model_config)
     if tokenizer_file:
         kwargs["tokenizer_file"] = tokenizer_file
-    tokenizer = AutoTokenizer.from_pretrained(model_config.tokenizer_id, **kwargs)
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(model_config.tokenizer_id, **kwargs)
+    except ValueError as error:
+        # Transformers 5 can export generic fast tokenizers with
+        # ``tokenizer_class: TokenizersBackend``. Transformers 4.57 does not
+        # expose that class through AutoTokenizer, even though its
+        # PreTrainedTokenizerFast implementation can load the same
+        # tokenizer.json and tokenizer metadata correctly.
+        if (
+            not model_config.tokenizer_use_fast
+            or tokenizer_file is None
+            or "Tokenizer class TokenizersBackend does not exist" not in str(error)
+        ):
+            raise
+        print(
+            "[tokenizer] AutoTokenizer cannot resolve TokenizersBackend; "
+            "loading the resolved tokenizer.json with PreTrainedTokenizerFast.",
+            flush=True,
+        )
+        tokenizer = PreTrainedTokenizerFast.from_pretrained(
+            model_config.tokenizer_id,
+            revision=model_config.tokenizer_revision,
+            tokenizer_file=tokenizer_file,
+        )
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     return tokenizer

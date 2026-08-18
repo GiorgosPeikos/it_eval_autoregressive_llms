@@ -5,6 +5,12 @@ The framework accepts decoder-only Hugging Face-compatible base models from eith
 - a Hugging Face repository id, such as `my-org/my-italian-model`
 - a local `save_pretrained()` checkpoint directory
 
+Local checkpoints exported by Transformers 5 may identify a generic fast
+tokenizer as `TokenizersBackend`. The pinned Transformers 4.57 runtime cannot
+resolve that newer class name through `AutoTokenizer`; when a standard
+`tokenizer.json` is present, the framework automatically loads the same files
+through `PreTrainedTokenizerFast` instead.
+
 Start with `quick`. It is deliberately bounded and checks BLiMP-IT, Italian perplexity, generation, aggregation, and reproducibility output. Its scores are not publication measurements.
 
 ## Route A: Colab

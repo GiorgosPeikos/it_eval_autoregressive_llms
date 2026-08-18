@@ -58,6 +58,56 @@ def test_load_tokenizer_passes_resolved_hub_tokenizer_file(monkeypatch):
     assert observed["kwargs"]["revision"] == "a" * 40
 
 
+def test_load_tokenizer_falls_back_for_transformers_5_tokenizers_backend(monkeypatch, tmp_path):
+    tokenizer_directory = tmp_path / "tokenizer"
+    tokenizer_directory.mkdir()
+    tokenizer_file = tokenizer_directory / "tokenizer.json"
+    tokenizer_file.write_text("{}", encoding="utf-8")
+    observed = {}
+
+    def unsupported_tokenizer_class(*args, **kwargs):
+        raise ValueError("Tokenizer class TokenizersBackend does not exist or is not currently imported.")
+
+    def compatible_fast_tokenizer(tokenizer_id, **kwargs):
+        observed["tokenizer_id"] = tokenizer_id
+        observed["kwargs"] = kwargs
+        return FakeTokenizer()
+
+    monkeypatch.setattr(modeling.AutoTokenizer, "from_pretrained", unsupported_tokenizer_class)
+    monkeypatch.setattr(modeling.PreTrainedTokenizerFast, "from_pretrained", compatible_fast_tokenizer)
+
+    tokenizer = modeling.load_tokenizer(
+        ModelConfig(
+            source="owner/model",
+            tokenizer_source=str(tokenizer_directory),
+            tokenizer_revision="a" * 40,
+        )
+    )
+
+    assert isinstance(tokenizer, FakeTokenizer)
+    assert observed["tokenizer_id"] == str(tokenizer_directory)
+    assert observed["kwargs"]["tokenizer_file"] == str(tokenizer_file.resolve())
+    assert observed["kwargs"]["revision"] == "a" * 40
+
+
+def test_load_tokenizer_does_not_mask_other_auto_tokenizer_errors(monkeypatch, tmp_path):
+    tokenizer_directory = tmp_path / "tokenizer"
+    tokenizer_directory.mkdir()
+    (tokenizer_directory / "tokenizer.json").write_text("{}", encoding="utf-8")
+
+    def unrelated_error(*args, **kwargs):
+        raise ValueError("A different tokenizer configuration error")
+
+    monkeypatch.setattr(modeling.AutoTokenizer, "from_pretrained", unrelated_error)
+
+    try:
+        modeling.load_tokenizer(ModelConfig(source=str(tokenizer_directory)))
+    except ValueError as error:
+        assert str(error) == "A different tokenizer configuration error"
+    else:
+        raise AssertionError("The unrelated AutoTokenizer error should be preserved.")
+
+
 def test_resolve_tokenizer_file_uses_absolute_local_path(tmp_path):
     tokenizer_directory = tmp_path / "tokenizer"
     tokenizer_directory.mkdir()
