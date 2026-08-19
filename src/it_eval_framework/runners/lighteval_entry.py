@@ -55,13 +55,46 @@ def _patch_transformers_tokenizer_file_resolution() -> None:
     original_from_pretrained = AutoTokenizer.from_pretrained
 
     def compatible_from_pretrained(source, *args, **kwargs):
-        if kwargs.get("use_fast", True) and "tokenizer_file" not in kwargs:
-            tokenizer_file = _resolve_tokenizer_json(str(source), kwargs.get("revision"))
-            if tokenizer_file:
-                kwargs["tokenizer_file"] = tokenizer_file
-        return original_from_pretrained(source, *args, **kwargs)
+        return _compatible_tokenizer_from_pretrained(
+            original_from_pretrained,
+            source,
+            *args,
+            **kwargs,
+        )
 
     AutoTokenizer.from_pretrained = compatible_from_pretrained
+
+
+def _compatible_tokenizer_from_pretrained(original_from_pretrained, source, *args, **kwargs):
+    """Load Transformers 5 generic fast-tokenizer exports under 4.57."""
+    from transformers import PreTrainedTokenizerFast
+
+    tokenizer_file = kwargs.get("tokenizer_file")
+    if kwargs.get("use_fast", True) and tokenizer_file is None:
+        tokenizer_file = _resolve_tokenizer_json(str(source), kwargs.get("revision"))
+        if tokenizer_file:
+            kwargs["tokenizer_file"] = tokenizer_file
+    try:
+        return original_from_pretrained(source, *args, **kwargs)
+    except ValueError as error:
+        if (
+            not kwargs.get("use_fast", True)
+            or tokenizer_file is None
+            or "Tokenizer class TokenizersBackend does not exist" not in str(error)
+        ):
+            raise
+        print(
+            "[tokenizer] AutoTokenizer cannot resolve TokenizersBackend; "
+            "loading tokenizer.json with PreTrainedTokenizerFast.",
+            flush=True,
+        )
+        fallback_kwargs = dict(kwargs)
+        fallback_kwargs.pop("use_fast", None)
+        return PreTrainedTokenizerFast.from_pretrained(
+            source,
+            *args,
+            **fallback_kwargs,
+        )
 
 
 def _sanitize_filename_component(value: str) -> str:
