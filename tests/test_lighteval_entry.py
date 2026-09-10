@@ -22,6 +22,12 @@ from it_eval_framework.runners.lighteval_entry import (
 )
 
 
+@pytest.fixture(autouse=True)
+def clear_probe_environment(monkeypatch):
+    monkeypatch.delenv("IT_EVAL_DISABLE_SAMPLE_CACHE", raising=False)
+    monkeypatch.delenv("IT_EVAL_GENERATION_TOKEN_CAP", raising=False)
+
+
 def test_compatible_tokenizer_falls_back_for_tokenizers_backend(monkeypatch, tmp_path):
     tokenizer_json = tmp_path / "tokenizer.json"
     tokenizer_json.write_text("{}", encoding="utf-8")
