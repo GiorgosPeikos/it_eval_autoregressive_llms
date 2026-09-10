@@ -1,13 +1,20 @@
 from __future__ import annotations
 
 import gc
+import inspect
 import os
 import re
+import textwrap
 from dataclasses import replace
+from functools import update_wrapper
 from pathlib import Path, PureWindowsPath
 
 from huggingface_hub import hf_hub_download
 from huggingface_hub.utils import EntryNotFoundError
+
+
+_BROKEN_DISTRIBUTED_CHOICE_SLICE = "gathered_continuations[i][:num_choices][:len_choice]"
+_FIXED_DISTRIBUTED_CHOICE_SLICE = "gathered_continuations[i][:num_choices, :len_choice]"
 
 
 def _patch_windows_cache_paths() -> None:
@@ -176,6 +183,45 @@ def _patch_model_response_token_storage() -> None:
     ModelResponse.__init__ = host_token_init
 
 
+def _repair_distributed_choice_slice_source(source: str) -> str:
+    """Repair LightEval 0.13's choice/token-axis slicing typo."""
+    if _FIXED_DISTRIBUTED_CHOICE_SLICE in source and _BROKEN_DISTRIBUTED_CHOICE_SLICE not in source:
+        return source
+    occurrences = source.count(_BROKEN_DISTRIBUTED_CHOICE_SLICE)
+    if occurrences != 1:
+        raise RuntimeError(
+            "Unsupported LightEval _loglikelihood_tokens implementation: "
+            f"expected one distributed choice-slice pattern, found {occurrences}."
+        )
+    return source.replace(_BROKEN_DISTRIBUTED_CHOICE_SLICE, _FIXED_DISTRIBUTED_CHOICE_SLICE)
+
+
+def _patch_lighteval_distributed_choice_slicing() -> None:
+    """Keep continuation choice and token axes intact after Accelerate gather."""
+    from lighteval.models.transformers.transformers_model import TransformersModel
+
+    original = TransformersModel._loglikelihood_tokens
+    if getattr(original, "_it_eval_distributed_choice_slice_fixed", False):
+        return
+
+    source = textwrap.dedent(inspect.getsource(original))
+    repaired_source = _repair_distributed_choice_slice_source(source)
+    if repaired_source == source:
+        return
+
+    namespace = {}
+    filename = inspect.getsourcefile(original) or "<lighteval-transformers-model>"
+    exec(compile(repaired_source, filename, "exec"), original.__globals__, namespace)
+    repaired = namespace[original.__name__]
+    update_wrapper(repaired, original)
+    repaired._it_eval_distributed_choice_slice_fixed = True
+    TransformersModel._loglikelihood_tokens = repaired
+    print(
+        "[lighteval] Patched distributed continuation slicing across choice and token axes.",
+        flush=True,
+    )
+
+
 def _patch_transformers_pmi_loglikelihood() -> None:
     from lighteval.models.transformers.transformers_model import TransformersModel
 
@@ -308,6 +354,7 @@ def main() -> None:
     _patch_transformers_tokenizer_file_resolution()
     _patch_details_save_paths()
     _patch_model_response_token_storage()
+    _patch_lighteval_distributed_choice_slicing()
     _patch_transformers_pmi_loglikelihood()
     _patch_transformers_greedy_until_stop_sequences()
     _patch_problematic_task_revisions()

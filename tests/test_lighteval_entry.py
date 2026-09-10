@@ -8,6 +8,7 @@ from lighteval.models.model_output import ModelResponse
 from it_eval_framework.runners.lighteval_entry import (
     _compatible_tokenizer_from_pretrained,
     _merge_unconditioned_response,
+    _repair_distributed_choice_slice_source,
     _run_greedy_until_with_oom_backoff,
     _resolve_tokenizer_json,
     _sanitize_filename_component,
@@ -87,6 +88,25 @@ def test_token_data_to_host_detaches_nested_tensor_like_values():
             return [1, 2, 3]
 
     assert _token_data_to_host((TensorLike(), [4])) == [[1, 2, 3], [4]]
+
+
+def test_repair_distributed_choice_slice_preserves_both_tensor_axes():
+    broken = "value = gathered_continuations[i][:num_choices][:len_choice]"
+
+    repaired = _repair_distributed_choice_slice_source(broken)
+
+    assert repaired == "value = gathered_continuations[i][:num_choices, :len_choice]"
+
+
+def test_repair_distributed_choice_slice_accepts_already_fixed_source():
+    fixed = "value = gathered_continuations[i][:num_choices, :len_choice]"
+
+    assert _repair_distributed_choice_slice_source(fixed) == fixed
+
+
+def test_repair_distributed_choice_slice_rejects_unknown_source():
+    with pytest.raises(RuntimeError, match="expected one distributed choice-slice pattern"):
+        _repair_distributed_choice_slice_source("value = gathered_continuations[i]")
 
 
 def test_resolve_tokenizer_json_returns_absolute_local_file(tmp_path):
