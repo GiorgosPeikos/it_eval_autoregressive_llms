@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gc
 import os
 import re
 from dataclasses import replace
@@ -152,6 +153,29 @@ def _merge_unconditioned_response(conditioned_response, unconditioned_response):
     return conditioned_response
 
 
+def _token_data_to_host(value):
+    """Store response token IDs as the host-side lists declared by ModelResponse."""
+    if all(hasattr(value, attribute) for attribute in ("detach", "cpu", "tolist")):
+        return value.detach().cpu().tolist()
+    if isinstance(value, (list, tuple)):
+        return [_token_data_to_host(item) for item in value]
+    return value
+
+
+def _patch_model_response_token_storage() -> None:
+    """Prevent completed likelihood responses from retaining CUDA tensors."""
+    from lighteval.models.model_output import ModelResponse
+
+    original_init = ModelResponse.__init__
+
+    def host_token_init(self, *args, **kwargs):
+        original_init(self, *args, **kwargs)
+        self.input_tokens = _token_data_to_host(self.input_tokens)
+        self.output_tokens = _token_data_to_host(self.output_tokens)
+
+    ModelResponse.__init__ = host_token_init
+
+
 def _patch_transformers_pmi_loglikelihood() -> None:
     from lighteval.models.transformers.transformers_model import TransformersModel
 
@@ -223,9 +247,48 @@ def _patch_transformers_greedy_until_stop_sequences() -> None:
             if stop_sequences is not None and not isinstance(stop_sequences, list):
                 doc = replace(doc, stop_sequences=list(stop_sequences))
             normalized_docs.append(doc)
-        return original_greedy_until(self, normalized_docs)
+        return _run_greedy_until_with_oom_backoff(self, normalized_docs, original_greedy_until)
 
     TransformersModel.greedy_until = patched_greedy_until
+
+
+def _release_cuda_memory() -> None:
+    """Release tensors from the preceding LightEval sampling phase."""
+    import torch
+
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+
+def _run_greedy_until_with_oom_backoff(model, docs, greedy_until):
+    """Retry only generation with progressively smaller batches after CUDA OOM."""
+    configured_batch_size = getattr(model.config, "batch_size", None)
+    current_batch_size = configured_batch_size
+
+    try:
+        while True:
+            _release_cuda_memory()
+            try:
+                return greedy_until(model, docs)
+            except RuntimeError as error:
+                is_cuda_oom = "CUDA out of memory" in str(error)
+                can_reduce = isinstance(current_batch_size, int) and current_batch_size > 1
+                if not is_cuda_oom or not can_reduce:
+                    raise
+
+                next_batch_size = max(1, current_batch_size // 2)
+                print(
+                    "[lighteval] CUDA OOM during generation; "
+                    f"retrying all generative requests with batch_size={next_batch_size} "
+                    f"(previously {current_batch_size}).",
+                    flush=True,
+                )
+                current_batch_size = next_batch_size
+                model.config.batch_size = current_batch_size
+    finally:
+        model.config.batch_size = configured_batch_size
+        _release_cuda_memory()
 
 
 def _patch_problematic_task_revisions() -> None:
@@ -244,6 +307,7 @@ def main() -> None:
     _patch_xxhash_string_inputs()
     _patch_transformers_tokenizer_file_resolution()
     _patch_details_save_paths()
+    _patch_model_response_token_storage()
     _patch_transformers_pmi_loglikelihood()
     _patch_transformers_greedy_until_stop_sequences()
     _patch_problematic_task_revisions()
