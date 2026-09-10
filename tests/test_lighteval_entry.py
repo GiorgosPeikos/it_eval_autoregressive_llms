@@ -26,6 +26,7 @@ from it_eval_framework.runners.lighteval_entry import (
 @pytest.fixture(autouse=True)
 def clear_probe_environment(monkeypatch):
     monkeypatch.delenv("IT_EVAL_DISABLE_SAMPLE_CACHE", raising=False)
+    monkeypatch.delenv("IT_EVAL_GENERATION_BATCH_SIZE", raising=False)
     monkeypatch.delenv("IT_EVAL_GENERATION_TOKEN_CAP", raising=False)
 
 
@@ -149,6 +150,24 @@ def test_greedy_until_retries_cuda_oom_with_smaller_batches(monkeypatch):
     assert observed_batch_sizes == [4, 2, 1]
     assert model.config.batch_size == 4
     assert len(releases) == 4
+
+
+def test_generation_batch_size_can_be_reduced_without_changing_evaluation_batch(monkeypatch):
+    model = SimpleNamespace(config=SimpleNamespace(batch_size=4))
+    observed_batch_sizes = []
+    monkeypatch.setenv("IT_EVAL_GENERATION_BATCH_SIZE", "1")
+    monkeypatch.setattr(
+        "it_eval_framework.runners.lighteval_entry._release_cuda_memory",
+        lambda: None,
+    )
+
+    def greedy_until(current_model, docs):
+        observed_batch_sizes.append(current_model.config.batch_size)
+        return docs
+
+    assert _run_greedy_until_with_oom_backoff(model, ["request"], greedy_until) == ["request"]
+    assert observed_batch_sizes == [1]
+    assert model.config.batch_size == 4
 
 
 def test_greedy_until_does_not_hide_non_oom_errors(monkeypatch):

@@ -17,6 +17,7 @@ from huggingface_hub.utils import EntryNotFoundError
 _BROKEN_DISTRIBUTED_CHOICE_SLICE = "gathered_continuations[i][:num_choices][:len_choice]"
 _FIXED_DISTRIBUTED_CHOICE_SLICE = "gathered_continuations[i][:num_choices, :len_choice]"
 _GENERATION_TOKEN_CAP_ENV = "IT_EVAL_GENERATION_TOKEN_CAP"
+_GENERATION_BATCH_SIZE_ENV = "IT_EVAL_GENERATION_BATCH_SIZE"
 _DISABLE_SAMPLE_CACHE_ENV = "IT_EVAL_DISABLE_SAMPLE_CACHE"
 
 
@@ -403,7 +404,15 @@ def _environment_flag_enabled(name: str) -> bool:
 def _run_greedy_until_with_oom_backoff(model, docs, greedy_until):
     """Retry only generation with progressively smaller batches after CUDA OOM."""
     configured_batch_size = getattr(model.config, "batch_size", None)
-    current_batch_size = configured_batch_size
+    generation_batch_size = _optional_positive_environment_integer(_GENERATION_BATCH_SIZE_ENV)
+    current_batch_size = generation_batch_size or configured_batch_size
+    if generation_batch_size is not None:
+        model.config.batch_size = generation_batch_size
+        print(
+            f"[lighteval] Set generation batch_size={generation_batch_size} "
+            f"(configured evaluation batch_size={configured_batch_size}).",
+            flush=True,
+        )
     accelerator = getattr(model, "accelerator", None)
     distributed = getattr(accelerator, "num_processes", 1) > 1
     cache_disabled_by_environment = _environment_flag_enabled(_DISABLE_SAMPLE_CACHE_ENV)
