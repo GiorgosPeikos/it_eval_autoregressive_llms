@@ -8,6 +8,7 @@ from lighteval.models.model_output import ModelResponse
 
 from it_eval_framework.runners.lighteval_entry import (
     _compatible_tokenizer_from_pretrained,
+    _canonicalize_sampling_docs,
     _environment_flag_enabled,
     _merge_unconditioned_response,
     _normalize_generation_requests,
@@ -263,6 +264,31 @@ def test_normalize_generation_requests_caps_and_normalizes():
     assert normalized[0].stop_sequences == ["\n"]
     assert normalized[1].stop_sequences == ["stop"]
     assert normalized[2].stop_sequences is None
+
+
+def test_canonicalize_sampling_docs_aligns_method_and_document_order():
+    def request(task, request_id, query):
+        return SimpleNamespace(task_name=task, id=request_id, query=query)
+
+    generative = [
+        request("mkqa", "2", "second"),
+        request("mkqa", "1", "first"),
+    ]
+    logprobs = [
+        request("arc", "2", "second"),
+        request("arc", "1", "first"),
+    ]
+
+    canonical = _canonicalize_sampling_docs(
+        {
+            "GENERATIVE": generative,
+            "LOGPROBS": logprobs,
+        }
+    )
+
+    assert list(canonical) == ["LOGPROBS", "GENERATIVE"]
+    assert [doc.id for doc in canonical["LOGPROBS"]] == ["1", "2"]
+    assert [doc.id for doc in canonical["GENERATIVE"]] == ["1", "2"]
 
 
 def test_environment_flag_enabled(monkeypatch):

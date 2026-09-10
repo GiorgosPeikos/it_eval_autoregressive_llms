@@ -48,6 +48,7 @@ The runner now always enters LightEval through the repository compatibility laye
 - string inputs passed to `xxhash`;
 - PMI/unconditioned multiple-choice responses;
 - generation stop-sequence normalization;
+- deterministic sampling-method and document ordering across distributed ranks;
 - known invalid upstream dataset revision pins;
 - Windows cache and result path restrictions.
 

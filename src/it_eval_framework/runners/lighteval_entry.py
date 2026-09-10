@@ -5,6 +5,7 @@ import inspect
 import os
 import re
 import textwrap
+from collections import defaultdict
 from dataclasses import replace
 from functools import update_wrapper
 from pathlib import Path, PureWindowsPath
@@ -302,6 +303,56 @@ def _patch_transformers_greedy_until_stop_sequences() -> None:
     TransformersModel.greedy_until = patched_greedy_until
 
 
+def _sampling_method_name(value) -> str:
+    return str(getattr(value, "value", value))
+
+
+def _canonicalize_sampling_docs(sampling_docs):
+    """Give every distributed rank identical method and document ordering."""
+    method_priority = {
+        "LOGPROBS": 0,
+        "GENERATIVE": 1,
+        "PERPLEXITY": 2,
+    }
+
+    def method_key(method):
+        name = _sampling_method_name(method)
+        return method_priority.get(name, len(method_priority)), name
+
+    def document_key(doc):
+        return (
+            str(getattr(doc, "task_name", "")),
+            str(getattr(doc, "id", "")),
+            str(getattr(doc, "query", "")),
+        )
+
+    canonical = defaultdict(list)
+    for method in sorted(sampling_docs, key=method_key):
+        canonical[method] = sorted(sampling_docs[method], key=document_key)
+    return canonical
+
+
+def _patch_pipeline_sampling_order() -> None:
+    """Prevent ranks from entering different Accelerate collectives."""
+    from lighteval.pipeline import Pipeline
+
+    original_init_tasks_and_requests = Pipeline._init_tasks_and_requests
+    if getattr(original_init_tasks_and_requests, "_it_eval_sampling_order_fixed", False):
+        return
+
+    def deterministic_init_tasks_and_requests(self, *args, **kwargs):
+        result = original_init_tasks_and_requests(self, *args, **kwargs)
+        self.sampling_docs = _canonicalize_sampling_docs(self.sampling_docs)
+        return result
+
+    deterministic_init_tasks_and_requests._it_eval_sampling_order_fixed = True
+    Pipeline._init_tasks_and_requests = deterministic_init_tasks_and_requests
+    print(
+        "[lighteval] Patched deterministic sampling-method and document ordering.",
+        flush=True,
+    )
+
+
 def _normalize_generation_requests(docs, token_cap: int | None):
     normalized_docs = []
     capped_requests = 0
@@ -423,6 +474,7 @@ def main() -> None:
     _patch_details_save_paths()
     _patch_model_response_token_storage()
     _patch_lighteval_distributed_choice_slicing()
+    _patch_pipeline_sampling_order()
     _patch_transformers_pmi_loglikelihood()
     _patch_transformers_greedy_until_stop_sequences()
     _patch_problematic_task_revisions()
