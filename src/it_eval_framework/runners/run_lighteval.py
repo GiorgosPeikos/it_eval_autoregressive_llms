@@ -51,15 +51,55 @@ def latest_results_json(output_dir: Path) -> Path | None:
     return candidates[-1] if candidates else None
 
 
-def compatibility_command() -> list[str]:
+def compatibility_command(
+    num_processes: int = 1,
+    main_process_port: int = 29500,
+) -> list[str]:
     """Always use repository patches, including on Linux and Colab."""
-    return [sys.executable, "-m", "it_eval_framework.runners.lighteval_entry"]
+    if num_processes < 1:
+        raise ValueError("num_processes must be at least 1")
+    if num_processes == 1:
+        return [sys.executable, "-m", "it_eval_framework.runners.lighteval_entry"]
+    return [
+        sys.executable,
+        "-u",
+        "-m",
+        "accelerate.commands.launch",
+        "--multi_gpu",
+        "--num_processes",
+        str(num_processes),
+        "--num_machines",
+        "1",
+        "--mixed_precision",
+        "no",
+        "--dynamo_backend",
+        "no",
+        "--main_process_port",
+        str(main_process_port),
+        "-m",
+        "it_eval_framework.runners.lighteval_entry",
+    ]
 
 
-def run(config_path: str) -> Path:
+def run(
+    config_path: str,
+    num_processes: int = 1,
+    main_process_port: int = 29500,
+) -> Path:
     config = load_runner_config(config_path)
     if not config.lighteval.enabled:
         raise ValueError("LightEval is disabled in this config.")
+    if num_processes < 1:
+        raise ValueError("num_processes must be at least 1")
+    if num_processes > 1:
+        import torch
+
+        available_gpus = torch.cuda.device_count()
+        if num_processes > available_gpus:
+            raise RuntimeError(
+                f"Requested {num_processes} LightEval processes, but only "
+                f"{available_gpus} CUDA devices are visible."
+            )
 
     run_dir, state = prepare_run(config)
     context = initialize_distributed(config.runtime.parallelism, config.model.device)
@@ -83,10 +123,15 @@ def run(config_path: str) -> Path:
     task_names = resolve_task_aliases(config.lighteval.task_aliases)
     lighteval_dir = run_dir / "lighteval_raw"
     mark_started(run_dir, "lighteval")
-    state.mark("lighteval", "running", task_names=task_names)
+    state.mark(
+        "lighteval",
+        "running",
+        task_names=task_names,
+        num_processes=num_processes,
+    )
 
     command = [
-        *compatibility_command(),
+        *compatibility_command(num_processes, main_process_port),
         "accelerate",
         build_model_args(config),
         ",".join(task_names),
@@ -114,6 +159,7 @@ def run(config_path: str) -> Path:
     env["PYTHONUNBUFFERED"] = "1"
     apply_windows_hf_cache_overrides(env)
     print(f"[lighteval] Running {len(task_names)} task(s):", flush=True)
+    print(f"[lighteval] Data-parallel processes: {num_processes}", flush=True)
     for index, (alias, task_name) in enumerate(zip(config.lighteval.task_aliases, task_names), start=1):
         print(f"[lighteval]   Task {index}/{len(task_names)}: {alias} -> {task_name}", flush=True)
     print(f"[lighteval] Log file: {run_dir / 'lighteval_stdout.log'}", flush=True)
@@ -174,8 +220,10 @@ def run(config_path: str) -> Path:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", required=True)
+    parser.add_argument("--num-processes", type=int, default=1)
+    parser.add_argument("--main-process-port", type=int, default=29500)
     args = parser.parse_args()
-    run(args.config)
+    run(args.config, args.num_processes, args.main_process_port)
 
 
 if __name__ == "__main__":

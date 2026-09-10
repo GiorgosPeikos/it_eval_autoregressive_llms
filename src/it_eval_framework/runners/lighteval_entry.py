@@ -311,6 +311,22 @@ def _run_greedy_until_with_oom_backoff(model, docs, greedy_until):
     """Retry only generation with progressively smaller batches after CUDA OOM."""
     configured_batch_size = getattr(model.config, "batch_size", None)
     current_batch_size = configured_batch_size
+    accelerator = getattr(model, "accelerator", None)
+    distributed = getattr(accelerator, "num_processes", 1) > 1
+    has_sample_cache = hasattr(model, "_cache")
+    configured_cache = getattr(model, "_cache", None)
+
+    # LightEval 0.13's SampleCache writes one shared parquet file per task.
+    # Multiple ranks can overwrite that file concurrently, and a follow-up
+    # equivalence run can silently replay predictions from an earlier run.
+    # Distributed evaluation must therefore gather fresh rank-local responses
+    # instead of reading or writing the process-unsafe prediction cache.
+    if distributed and has_sample_cache:
+        model._cache = None
+        print(
+            "[lighteval] Disabled the shared prediction cache for distributed generation.",
+            flush=True,
+        )
 
     try:
         while True:
@@ -334,6 +350,8 @@ def _run_greedy_until_with_oom_backoff(model, docs, greedy_until):
                 model.config.batch_size = current_batch_size
     finally:
         model.config.batch_size = configured_batch_size
+        if distributed and has_sample_cache:
+            model._cache = configured_cache
         _release_cuda_memory()
 
 

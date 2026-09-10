@@ -154,3 +154,45 @@ def test_greedy_until_does_not_hide_non_oom_errors(monkeypatch):
         _run_greedy_until_with_oom_backoff(model, [], greedy_until)
 
     assert model.config.batch_size == 4
+
+
+def test_distributed_generation_bypasses_and_restores_shared_sample_cache(monkeypatch):
+    configured_cache = object()
+    model = SimpleNamespace(
+        config=SimpleNamespace(batch_size=4),
+        accelerator=SimpleNamespace(num_processes=4),
+        _cache=configured_cache,
+    )
+    observed_caches = []
+    monkeypatch.setattr(
+        "it_eval_framework.runners.lighteval_entry._release_cuda_memory",
+        lambda: None,
+    )
+
+    def greedy_until(current_model, docs):
+        observed_caches.append(current_model._cache)
+        return docs
+
+    assert _run_greedy_until_with_oom_backoff(model, ["request"], greedy_until) == ["request"]
+    assert observed_caches == [None]
+    assert model._cache is configured_cache
+
+
+def test_single_process_generation_keeps_sample_cache_enabled(monkeypatch):
+    configured_cache = object()
+    model = SimpleNamespace(
+        config=SimpleNamespace(batch_size=4),
+        accelerator=SimpleNamespace(num_processes=1),
+        _cache=configured_cache,
+    )
+    monkeypatch.setattr(
+        "it_eval_framework.runners.lighteval_entry._release_cuda_memory",
+        lambda: None,
+    )
+
+    def greedy_until(current_model, docs):
+        assert current_model._cache is configured_cache
+        return docs
+
+    assert _run_greedy_until_with_oom_backoff(model, ["request"], greedy_until) == ["request"]
+    assert model._cache is configured_cache

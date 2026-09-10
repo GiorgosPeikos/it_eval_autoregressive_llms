@@ -2,7 +2,7 @@ from pathlib import Path
 
 from it_eval_framework.config import discover_evaluation_configs, load_config
 from it_eval_framework.config import EvaluationConfig
-from it_eval_framework.runners.run_lighteval import build_model_args
+from it_eval_framework.runners.run_lighteval import build_model_args, compatibility_command
 from it_eval_framework.task_registry import (
     ALL_EVALUABLE_ITALIAN_LIGHTEVAL_ALIASES,
     NON_EVALUABLE_LIGHTEVAL_ALIASES,
@@ -102,3 +102,28 @@ def test_lighteval_model_args_include_context_and_chat_template_overrides():
 
     assert "max_length=2048" in model_args
     assert "override_chat_template=false" in model_args
+
+
+def test_single_process_lighteval_uses_compatibility_entrypoint_directly():
+    command = compatibility_command()
+
+    assert command[-2:] == ["-m", "it_eval_framework.runners.lighteval_entry"]
+    assert "accelerate.commands.launch" not in command
+
+
+def test_multi_process_lighteval_uses_accelerate_launcher():
+    command = compatibility_command(num_processes=4, main_process_port=29631)
+
+    assert command[:4] == [command[0], "-u", "-m", "accelerate.commands.launch"]
+    assert command[command.index("--num_processes") + 1] == "4"
+    assert command[command.index("--main_process_port") + 1] == "29631"
+    assert command[-2:] == ["-m", "it_eval_framework.runners.lighteval_entry"]
+
+
+def test_lighteval_command_rejects_zero_processes():
+    try:
+        compatibility_command(num_processes=0)
+    except ValueError as error:
+        assert "at least 1" in str(error)
+    else:
+        raise AssertionError("Expected a non-positive process count to fail")
