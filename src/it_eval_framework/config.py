@@ -28,6 +28,13 @@ class ModelConfig(BaseModel):
     )
     batch_size: int = 1
     max_model_length: int | None = None
+    override_chat_template: bool | None = Field(
+        default=None,
+        description=(
+            "Override LightEval chat-template auto-detection. Set false for "
+            "canonical completion-style benchmark prompts."
+        ),
+    )
     artifact_sha256: str | None = Field(default=None, description="User-supplied digest for a local model artifact.")
 
     @property

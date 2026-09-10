@@ -2,6 +2,7 @@ from pathlib import Path
 
 from it_eval_framework.config import discover_evaluation_configs, load_config
 from it_eval_framework.config import EvaluationConfig
+from it_eval_framework.runners.run_lighteval import build_model_args
 from it_eval_framework.task_registry import (
     ALL_EVALUABLE_ITALIAN_LIGHTEVAL_ALIASES,
     NON_EVALUABLE_LIGHTEVAL_ALIASES,
@@ -80,3 +81,24 @@ def test_enabled_lighteval_requires_tasks():
         assert "requires a suite" in str(error)
     else:
         raise AssertionError("Expected enabled task-less LightEval config to fail")
+
+
+def test_lighteval_model_args_include_context_and_chat_template_overrides():
+    config = EvaluationConfig.model_validate(
+        {
+            "model": {
+                "source": "owner/model",
+                "max_model_length": 2048,
+                "override_chat_template": False,
+            },
+            "lighteval": {"enabled": True, "suite": "quick"},
+            "blimp_it": {"enabled": False},
+            "perplexity": None,
+            "generation": {"enabled": False},
+        }
+    )
+
+    model_args = build_model_args(config)
+
+    assert "max_length=2048" in model_args
+    assert "override_chat_template=false" in model_args

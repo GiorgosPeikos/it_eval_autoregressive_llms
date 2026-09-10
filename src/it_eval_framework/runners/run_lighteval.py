@@ -39,6 +39,8 @@ def build_model_args(config) -> str:
     }
     if config.model.max_model_length:
         items["max_length"] = config.model.max_model_length
+    if config.model.override_chat_template is not None:
+        items["override_chat_template"] = str(config.model.override_chat_template).lower()
     if config.model.device_map is not None:
         items["model_parallel"] = "true"
     return ",".join(f"{key}={value}" for key, value in items.items() if value is not None)
