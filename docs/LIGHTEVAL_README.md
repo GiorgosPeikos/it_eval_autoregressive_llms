@@ -75,6 +75,19 @@ This selects 39 tasks and evaluates at most 10 examples from each task. Setting 
 
 Be aware that `max_samples` limits inference work, but Hugging Face may still need to download or prepare a task's complete source split before LightEval can select those examples.
 
+For engineering probes only, the compatibility entry point accepts two explicit
+environment controls:
+
+- `IT_EVAL_GENERATION_TOKEN_CAP=64` caps every generative request at the stated
+  positive number of tokens, including tasks whose own generation size is unset.
+- `IT_EVAL_DISABLE_SAMPLE_CACHE=1` forces fresh generation instead of reusing
+  LightEval's prediction cache.
+
+Both settings are announced in the process log. A token cap changes the
+evaluation protocol, so use the same value for every model being compared and
+record it with the results. Leave it unset when reproducing an existing
+unbounded benchmark protocol.
+
 ## Recommended progression
 
 Use the same immutable model revision throughout this progression:

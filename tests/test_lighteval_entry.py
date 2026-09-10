@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from pathlib import Path, PureWindowsPath
 from types import SimpleNamespace
 
@@ -7,7 +8,10 @@ from lighteval.models.model_output import ModelResponse
 
 from it_eval_framework.runners.lighteval_entry import (
     _compatible_tokenizer_from_pretrained,
+    _environment_flag_enabled,
     _merge_unconditioned_response,
+    _normalize_generation_requests,
+    _optional_positive_environment_integer,
     _repair_distributed_choice_slice_source,
     _run_greedy_until_with_oom_backoff,
     _resolve_tokenizer_json,
@@ -196,3 +200,74 @@ def test_single_process_generation_keeps_sample_cache_enabled(monkeypatch):
 
     assert _run_greedy_until_with_oom_backoff(model, ["request"], greedy_until) == ["request"]
     assert model._cache is configured_cache
+
+
+def test_single_process_generation_can_force_prediction_cache_off(monkeypatch):
+    configured_cache = object()
+    model = SimpleNamespace(
+        config=SimpleNamespace(batch_size=4),
+        accelerator=SimpleNamespace(num_processes=1),
+        _cache=configured_cache,
+    )
+    observed_caches = []
+    monkeypatch.setenv("IT_EVAL_DISABLE_SAMPLE_CACHE", "1")
+    monkeypatch.setattr(
+        "it_eval_framework.runners.lighteval_entry._release_cuda_memory",
+        lambda: None,
+    )
+
+    def greedy_until(current_model, docs):
+        observed_caches.append(current_model._cache)
+        return docs
+
+    assert _run_greedy_until_with_oom_backoff(model, ["request"], greedy_until) == ["request"]
+    assert observed_caches == [None]
+    assert model._cache is configured_cache
+
+
+def test_optional_positive_environment_integer(monkeypatch):
+    monkeypatch.delenv("TOKEN_CAP", raising=False)
+    assert _optional_positive_environment_integer("TOKEN_CAP") is None
+
+    monkeypatch.setenv("TOKEN_CAP", "64")
+    assert _optional_positive_environment_integer("TOKEN_CAP") == 64
+
+    for value in ("0", "-1", "invalid"):
+        monkeypatch.setenv("TOKEN_CAP", value)
+        with pytest.raises(ValueError, match="must be a positive integer"):
+            _optional_positive_environment_integer("TOKEN_CAP")
+
+
+def test_normalize_generation_requests_caps_and_normalizes():
+    @dataclass(frozen=True)
+    class Request:
+        generation_size: int | None
+        stop_sequences: object
+
+    requests = [
+        Request(generation_size=None, stop_sequences=("\n",)),
+        Request(generation_size=400, stop_sequences=["stop"]),
+        Request(generation_size=32, stop_sequences=None),
+    ]
+
+    normalized, capped = _normalize_generation_requests(requests, 64)
+
+    assert capped == 2
+    assert [request.generation_size for request in normalized] == [64, 64, 32]
+    assert normalized[0].stop_sequences == ["\n"]
+    assert normalized[1].stop_sequences == ["stop"]
+    assert normalized[2].stop_sequences is None
+
+
+def test_environment_flag_enabled(monkeypatch):
+    for value in ("1", "true", "YES", "on"):
+        monkeypatch.setenv("CACHE_FLAG", value)
+        assert _environment_flag_enabled("CACHE_FLAG") is True
+
+    for value in ("", "0", "false", "NO", "off"):
+        monkeypatch.setenv("CACHE_FLAG", value)
+        assert _environment_flag_enabled("CACHE_FLAG") is False
+
+    monkeypatch.setenv("CACHE_FLAG", "sometimes")
+    with pytest.raises(ValueError, match="must be one of"):
+        _environment_flag_enabled("CACHE_FLAG")

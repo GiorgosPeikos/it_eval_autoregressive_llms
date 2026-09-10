@@ -15,6 +15,8 @@ from huggingface_hub.utils import EntryNotFoundError
 
 _BROKEN_DISTRIBUTED_CHOICE_SLICE = "gathered_continuations[i][:num_choices][:len_choice]"
 _FIXED_DISTRIBUTED_CHOICE_SLICE = "gathered_continuations[i][:num_choices, :len_choice]"
+_GENERATION_TOKEN_CAP_ENV = "IT_EVAL_GENERATION_TOKEN_CAP"
+_DISABLE_SAMPLE_CACHE_ENV = "IT_EVAL_DISABLE_SAMPLE_CACHE"
 
 
 def _patch_windows_cache_paths() -> None:
@@ -287,15 +289,31 @@ def _patch_transformers_greedy_until_stop_sequences() -> None:
     original_greedy_until = TransformersModel.greedy_until
 
     def patched_greedy_until(self, docs):
-        normalized_docs = []
-        for doc in docs:
-            stop_sequences = doc.stop_sequences
-            if stop_sequences is not None and not isinstance(stop_sequences, list):
-                doc = replace(doc, stop_sequences=list(stop_sequences))
-            normalized_docs.append(doc)
+        token_cap = _optional_positive_environment_integer(_GENERATION_TOKEN_CAP_ENV)
+        normalized_docs, capped_requests = _normalize_generation_requests(docs, token_cap)
+        if token_cap is not None:
+            print(
+                "[lighteval] Applied generation token cap="
+                f"{token_cap} to {capped_requests}/{len(normalized_docs)} requests.",
+                flush=True,
+            )
         return _run_greedy_until_with_oom_backoff(self, normalized_docs, original_greedy_until)
 
     TransformersModel.greedy_until = patched_greedy_until
+
+
+def _normalize_generation_requests(docs, token_cap: int | None):
+    normalized_docs = []
+    capped_requests = 0
+    for doc in docs:
+        stop_sequences = doc.stop_sequences
+        if stop_sequences is not None and not isinstance(stop_sequences, list):
+            doc = replace(doc, stop_sequences=list(stop_sequences))
+        if token_cap is not None and (doc.generation_size is None or doc.generation_size > token_cap):
+            doc = replace(doc, generation_size=token_cap)
+            capped_requests += 1
+        normalized_docs.append(doc)
+    return normalized_docs, capped_requests
 
 
 def _release_cuda_memory() -> None:
@@ -307,26 +325,58 @@ def _release_cuda_memory() -> None:
         torch.cuda.empty_cache()
 
 
+def _optional_positive_environment_integer(name: str) -> int | None:
+    value = os.environ.get(name)
+    if value is None or not value.strip():
+        return None
+    try:
+        parsed = int(value)
+    except ValueError as error:
+        raise ValueError(f"{name} must be a positive integer, received {value!r}.") from error
+    if parsed < 1:
+        raise ValueError(f"{name} must be a positive integer, received {value!r}.")
+    return parsed
+
+
+def _environment_flag_enabled(name: str) -> bool:
+    value = os.environ.get(name, "").strip().lower()
+    if value in {"", "0", "false", "no", "off"}:
+        return False
+    if value in {"1", "true", "yes", "on"}:
+        return True
+    raise ValueError(
+        f"{name} must be one of 1/0, true/false, yes/no, or on/off; received {value!r}."
+    )
+
+
 def _run_greedy_until_with_oom_backoff(model, docs, greedy_until):
     """Retry only generation with progressively smaller batches after CUDA OOM."""
     configured_batch_size = getattr(model.config, "batch_size", None)
     current_batch_size = configured_batch_size
     accelerator = getattr(model, "accelerator", None)
     distributed = getattr(accelerator, "num_processes", 1) > 1
+    cache_disabled_by_environment = _environment_flag_enabled(_DISABLE_SAMPLE_CACHE_ENV)
     has_sample_cache = hasattr(model, "_cache")
     configured_cache = getattr(model, "_cache", None)
+    disable_sample_cache = distributed or cache_disabled_by_environment
 
     # LightEval 0.13's SampleCache writes one shared parquet file per task.
     # Multiple ranks can overwrite that file concurrently, and a follow-up
     # equivalence run can silently replay predictions from an earlier run.
     # Distributed evaluation must therefore gather fresh rank-local responses
     # instead of reading or writing the process-unsafe prediction cache.
-    if distributed and has_sample_cache:
+    if disable_sample_cache and has_sample_cache:
         model._cache = None
-        print(
-            "[lighteval] Disabled the shared prediction cache for distributed generation.",
-            flush=True,
-        )
+        if distributed:
+            print(
+                "[lighteval] Disabled the shared prediction cache for distributed generation.",
+                flush=True,
+            )
+        elif cache_disabled_by_environment:
+            print(
+                f"[lighteval] Disabled the prediction cache because {_DISABLE_SAMPLE_CACHE_ENV}=1.",
+                flush=True,
+            )
 
     try:
         while True:
@@ -350,7 +400,7 @@ def _run_greedy_until_with_oom_backoff(model, docs, greedy_until):
                 model.config.batch_size = current_batch_size
     finally:
         model.config.batch_size = configured_batch_size
-        if distributed and has_sample_cache:
+        if disable_sample_cache and has_sample_cache:
             model._cache = configured_cache
         _release_cuda_memory()
 
